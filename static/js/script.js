@@ -82,7 +82,7 @@ svg.call(zoom.transform, d3.zoomIdentity);
                 .enter()
                 .append("path")
                 .attr("d", path)
-                .style("fill", "lightgray")
+                .style("fill", "#20948B")
                 .style("stroke", "white");
 
             // Append emojis to the map
@@ -228,7 +228,7 @@ function createBarChart(data) {
 
   // Append a rect for each data entry.
   svg.append("g")
-      .attr("fill", "#8892b0")
+      .attr("fill", "#202020")
       .selectAll()
       .data(topCountries)
       .join("rect")
@@ -251,10 +251,10 @@ function createBarChart(data) {
       .attr("dy", "0.35em")
       .attr("dx", -4)
       .text((d) => d["Ladder score"])
-      .attr("fill", "#64ffda")
+      .attr("fill", "#EA6A47")
       .call((text) => text.filter(d => xScale(d["Ladder score"]) - xScale(0) < 20) // short bars
           .attr("dx", +4)
-          .attr("fill", "#64ffda")
+          .attr("fill", "#EA6A47")
           .attr("text-anchor", "start"));
 
       svg.append("g")
@@ -293,7 +293,7 @@ const keys = ['Economy', 'Social support', 'Health', 'Freedom', 'Trust', 'Genero
     const colorScale = d3.scaleOrdinal()
       .domain(keys)
       
-      .range(['#8892b0', '#8892b0', '#8892b0', '#8892b0', '#8892b0', '#8892b0', '#8892b0', '#8892b0']);
+      .range(['#202020', '#202020', '#202020', '#202020', '#202020', '#202020', '#202020', '#202020']);
 
       // .range(['#e41a1c', '#377eb8', '#4daf4a', '#984ea3', '#ff7f00', '#ffff33', '#a65628', '#f781bf']);
 
@@ -340,33 +340,51 @@ const keys = ['Economy', 'Social support', 'Health', 'Freedom', 'Trust', 'Genero
         .style('min-height', '33px')
         .style('font', '10px sans-serif')
         .style('margin-left', `${margin.left}px`);
-
+    
       const legendItems = legend.append('div');
-
+    
       const legendItem = legendItems.selectAll('.legend-item')
-  .data(keys)
-  .enter()
-  .append('span')
-  .classed('legend-item', true)
-  .style('display', 'inline-flex')
-  .style('align-items', 'center')
-  .style('margin-right', '1em')
-  .style('cursor', 'pointer')
-  .on('click', function(d) { updateChart(d3.select(this).datum()); })
-
-      legendItem.append('div')
-        .classed('legend-rect', true)
-        .style('width', '12px')
-        .style('height', '12px')
+        .data(keys)
+        .enter()
+        .append('span')
+        .classed('legend-item', true)
+        .style('display', 'inline-flex')
+        .style('align-items', 'center')
+        .style('margin-right', '10px')
+        .style('cursor', 'pointer')
+        .style('padding', '5px 10px')
+        .style('border', '1px solid #ccc')
+        .style('border-radius', '4px')
+        .style('background-color', '#f8f8f8')
+        .on('mouseover', function() { d3.select(this).style('background-color', '#e8e8e8'); })
+        .on('mouseout', function() { d3.select(this).style('background-color', '#f8f8f8'); })
+        .on('click', function(selectedData) {
+          // Remove the check mark from all items
+          legendItems.selectAll('.check-mark').style('display', 'none');
+    
+          // Display the check mark for the clicked item
+          const checkMark = d3.select(this).select('.check-mark');
+          checkMark.style('display', 'inline');
+    
+          // Update the chart based on the selected item
+          updateChart(selectedData);
+        });
+    
+      legendItem.append('text')
+        .classed('check-mark', true)
+        .style('display', 'none')  // Initially hide the check mark
+        .style('color', 'red')
         .style('margin-right', '0.5em')
-        .style('background-color', d => colorScale(d));
-
+        .text('✔');  // Unicode character for the check mark
+    
       legendItem.append('text')
         .text(d => d);
-
+    
       return legend;
     }
-
+    
+    
+    
     let data;
 
     function updateScales(selectedAttribute) {
@@ -382,18 +400,18 @@ const keys = ['Economy', 'Social support', 'Health', 'Freedom', 'Trust', 'Genero
       // Update x axis
       xAxisGroup.call(xAxis)
         .selectAll("path") // Select the axis line
-        .style("stroke", "#64ffda"); // Change color of x axis line
+        .style("stroke", "#EA6A47"); // Change color of x axis line
       
       xAxisGroup.selectAll("text") // Select all text elements of x axis
-        .style("fill", "#64ffda"); // Change color of text labels
+        .style("fill", "#EA6A47"); // Change color of text labels
     
       // Update y axis
       yAxisGroup.call(yAxis)
         .selectAll("path") // Select the axis line
-        .style("stroke", "#64ffda"); // Change color of y axis line
+        .style("stroke", "#EA6A47"); // Change color of y axis line
       
       yAxisGroup.selectAll("text") // Select all text elements of y axis
-        .style("fill", "#64ffda"); // Change color of text labels
+        .style("fill", "#EA6A47"); // Change color of text labels
     }
     
     
@@ -699,7 +717,7 @@ const keys = ['Economy', 'Social support', 'Health', 'Freedom', 'Trust', 'Genero
         .attr("y", -35 )
         .attr("text-anchor", "middle")
         .style("font-size", "18px")
-        .style("fill", "#8892b0")
+        .style("fill", "#202020")
         .style("font-weight", "bold")
         .text("Parallel Coordinates Plot (PCP)");
         });
@@ -946,6 +964,7 @@ const rows = [
   { range: '4.5 - 6', emoji: '😑' },
   { range: '1 - 4.5', emoji: '😡' }
 ];
+
 
 const tableRows = tbody.selectAll('tr')
   .data(rows)
