@@ -3,11 +3,11 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Dashboard</title>
-    <link
+    <title>Project Dashboard</title>
+    <!-- <link
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css"
       rel="stylesheet"
-    />
+    /> -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -15,211 +15,150 @@
       href="https://fonts.googleapis.com/css2?family=Reddit+Mono:wght@200..900&display=swap"
       rel="stylesheet"
     />
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
+    <!-- <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script> -->
 
-    <style>
-      body {
-        background-color: #0a192f;
-        color: #8892b0; /* Optionally, set text color to white for better contrast */
-        font-family: "Reddit Mono", monospace; /*Apply the custom font to the entire page*/
-        /* display: block; */
-        margin: 0;
-      }
-      .navbar-brand,
-      .form-range,
-      .col,
-      .navbar,
-      .nav-link,
-      .nav-item{
-        color: #64ffda; /* Optionally, set text color to white for better contrast */
-      }
-
-      .navbar-nav .nav-link.active {
-    color: #64ffda;
+<style>
+.chart-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh; /* Adjust the height as needed */
 }
-.navbar-toggler {
-    color: #64ffda;
-  }
-      .tooltip {
-        position: absolute;
-        pointer-events: none;
-        background: #8892b0;
-        color: #0a192f;
-      }
-      #selected-year {
+
+.row {
+  display: flex;
+  flex: 1; /* Equal height for both rows */
+}
+
+.chart {
+  /* background-color: #f0f0f0; */
+  background-color: #0a192f;
+
+  border: 1px solid #64ffda; /* Adjust the border as needed */
+  color: #8892b0; /* Optionally, set text color to white for better contrast */
+
+}
+
+.chart1 {
+  flex: 8; /* Portion of 8 */
+}
+
+.column {
+  flex: 4; /* Portion of 4 */
+  display: flex;
+  flex-direction: column;
+}
+
+.chart2,
+.chart3 {
+  flex: 1; /* Equal portions for the two charts */
+}
+
+.chart4,
+.chart5,
+.chart6 {
+  flex: 1; /* Equal portions for the three charts */
+}
+/* #selected-year {
         position: absolute;
         top: 70px;
         left: 0px;
         transform: translateX(-50%);
         margin-top: 10px;
         margin-bottom: 20px;
-      }
-      .container {
-        margin-left: 20px;
-      }
-      .visualization-container {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: space-between;
-        margin-left: 20px;
-      }
+      } */
+      .legend-item {
+            display: inline-block;
+            margin-right: 10px;
+            cursor: pointer;
+        }
 
-      /* Left column */
-      .left-column {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-      }
+        .legend-item rect {
+            display: inline-block;
+            vertical-align: middle;
+        }
 
-      /* Right column */
-      .right-column {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-      }
-      /* .visualization {
-          border: 1px solid #8892b0;
-          padding: 10px;
-          margin-bottom: 10px;
-        } */
-    </style>
-  </head>
+        .legend-item text {
+            display: inline-block;
+            vertical-align: middle;
+            margin-left: 5px;
+            font-size: 10px;
+            fill: #64ffda;
+        }
 
-  <body>
-    <!-- <nav class="navbar">
-      <div class="container-fluid">
-        <a class="navbar-brand" href="#">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="70"
-            height="70"
-            viewBox="0 0 200 200"
-          >
-            <polygon
-              points="100,10 190,50 190,150 100,190 10,150 10,50"
-              fill="none"
-              stroke="#64ffda"
-              stroke-width="7"
-            />
+    .region-legend {
+      font-size: 10px;
+      font-family: sans-serif;
+      display: flex;
+      align-items: center;
+      margin-bottom: 5px;
+    }
+    .region-legend-color {
+      width: 10px;
+      height: 10px;
+      margin-right: 5px;
+    }
 
-            <text
-              x="45"
-              y="105"
-              font-family="Reddit Mono"
-              font-size="50"
-              fill="#64ffda"
-            >
-              A
-            </text>
+    .line {
+  fill: none;
+  stroke-width: 2;
+}
 
-            <text
-              x="75"
-              y="135"
-              font-family="Reddit Mono"
-              font-size="50"
-              fill="#64ffda"
-            >
-              &
-            </text>
+.axis path {
+  fill: none;
+  stroke: #999; /* Light gray */
+  shape-rendering: crispEdges;
+}
 
-            <text
-              x="100"
-              y="165"
-              font-family="Reddit Mono"
-              font-size="50"
-              fill="#64ffda"
-            >
-              P
-            </text>
-          </svg>
+.axis text {
+  font-size: 10px;
+  fill: white; /* Dark gray */
+}
 
-          World Happiness Report Dashboard
-        </a>
-      </div>
-    </nav> -->
+.dragging {
+  fill: none;
+  pointer-events: all;
+  cursor: move;
+}
 
-    <nav class="navbar navbar-expand-lg">
-      <div class="container-fluid">
-        <a class="navbar-brand" href="#"><svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="65"
-          height="65"
-          viewBox="0 0 200 200"
-        >
-          <polygon
-            points="100,10 190,50 190,150 100,190 10,150 10,50"
-            fill="none"
-            stroke="#64ffda"
-            stroke-width="7"
-          />
+.background path {
+  fill: none;
+  stroke: #e0e0e0; /* Lighter gray */
+  stroke-opacity: 0.4;
+  shape-rendering: crispEdges;
+}
 
-          <text
-            x="45"
-            y="105"
-            font-family="Reddit Mono"
-            font-size="50"
-            fill="#64ffda"
-          >
-            A
-          </text>
+.foreground path {
+  fill: none;
+  stroke: #007bff; /* Blue */
+  stroke-opacity: 0.7;
+}
 
-          <text
-            x="75"
-            y="135"
-            font-family="Reddit Mono"
-            font-size="50"
-            fill="#64ffda"
-          >
-            &
-          </text>
+.brush .extent {
+  fill-opacity: 0.3;
+  stroke: #fff;
+  shape-rendering: crispEdges;
+}
 
-          <text
-            x="100"
-            y="165"
-            font-family="Reddit Mono"
-            font-size="50"
-            fill="#64ffda"
-          >
-            P
-          </text>
-        </svg></a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-          <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarSupportedContent">
-          <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-            <li class="nav-item">
-              <a class="nav-link active" aria-current="page" href="#">World Happiness Report Dashboard</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="#">Link</a>
-            </li>
-            <li class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                Dropdown
-              </a>
-              <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-                <li><a class="dropdown-item" href="#">Action</a></li>
-                <li><a class="dropdown-item" href="#">Another action</a></li>
-                <li><hr class="dropdown-divider"></li>
-                <li><a class="dropdown-item" href="#">Something else here</a></li>
-              </ul>
-            </li>
-          </ul>
-          <form class="d-flex">
-            <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
-            <button class="btn btn-outline-success" type="submit">Search</button>
-          </form>
-        </div>
-      </div>
-    </nav>
+.axis line,
+.axis path {
+  fill: none;
+  stroke: #64ffda; /* Aqua */
+  shape-rendering: crispEdges;
+}
 
-    <div class="visualization-container">
-      <!-- Left column -->
-      <div class="left-column">
-        <div class="visualization">
-          <span id="selected-year">2024</span>
+.axis text {
+  text-shadow: none; /* Remove text shadow */
+  cursor: pointer; /* Change cursor to pointer */
+}
+</style>
+</head>
+<body>
+
+    <div class="chart-container">
+        <div class="row">
+          <div class="chart chart1" id="map-container">
+            <span id="selected-year">2024</span>
           <!-- class="form-range" -->
           <input
             type="range"
@@ -229,31 +168,37 @@
             value="2024"
             id="year-slider"
           />
+          <div id="map"></div>
+
+          </div>
+          <div class="column">
+            <div class="chart chart2">
+                <div id="parallel-coordinates-plot"></div>
+
+            </div>
+            <div class="chart chart3">chart 3</div>
+          </div>
         </div>
+        <div class="row">
 
-        <div class="visualization" id="map"></div>
+          <div class="chart chart4" id="map-container">
+            <div id="legend-chart"></div>
 
-        <div class="visualization" id="chart"></div>
+            <div id="bubble-chart"></div>
+ </div>
+          <div class="chart chart5">chart 5</div>
+          <div class="chart chart6">chart 6</div>
+        </div>
       </div>
 
-     <!-- Right column -->
-<div class="right-column">
-  <!-- <label for="region-dropdown">Region:</label> -->
-  <select id="region-dropdown">
-      <!-- Options will be added dynamically using JavaScript -->
-  </select>
-
-  <!-- First row of the right column -->
-  <div class="visualization" id="bar-chart"></div>
-
-  <div class="visualization" id="pie-chart"></div>
-
-</div>
-
-    </div>
-
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <!-- <script src="https://d3js.org/d3.v7.min.js"></script> -->
+    <!-- Load d3.js -->
+<script src="https://d3js.org/d3.v4.js"></script>
+
+<!-- Load color scale -->
+<script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
+
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>
-  </body>
+</body>
 </html>

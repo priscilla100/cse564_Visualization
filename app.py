@@ -4,7 +4,8 @@ from sklearn.manifold import MDS
 import numpy as np
 app = Flask(__name__)
 
-df = pd.read_csv('static/whr_data/imputed_dataset_with_coords.csv')
+# df = pd.read_csv('static/whr_data/imputed_dataset_with_coords.csv')
+df = pd.read_csv('static/whr_data/merged_data.csv')
 
 @app.route('/')
 def index():
@@ -75,6 +76,15 @@ def count_by_region_and_year():
     region_counts = filtered_data['Region'].value_counts().to_dict()
 
     return jsonify(region_counts)
+@app.route('/pcp_data')
+def get_pcp_data():
+    df = pd.read_csv('static/whr_data/merged_data.csv')
+    df = df[['Country', 'Region', 'Happiness Rank', 'Ladder score', 'Economy',
+       'Social support', 'Health', 'Freedom', 'Trust', 'Generosity']]
+    sampled_df = df.groupby('Region').apply(lambda x: x.sample(3))
+    sampled_df = sampled_df.reset_index(drop=True)
+    sampled_df
+    return jsonify(sampled_df.to_dict(orient='records'))
 
 if __name__ == '__main__':
     app.run(debug=True)

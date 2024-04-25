@@ -6,14 +6,12 @@ var tooltip = d3.select("body").append("div")
 // Initialize the map with default year
 updateMap(2024);
 // Initial pie chart with year 2024
-createPieChart(2024);
 // createBubbleChart(2024);
 
 // Function to update the map based on the selected year
 d3.select("#year-slider").on("input", function () {
   var year = +this.value;
   updateMap(year);
-  createPieChart(year);
   // createBubbleChart(year);
   // loadDataAndCreateChart(year, region);
 
@@ -22,46 +20,61 @@ d3.select("#year-slider").on("input", function () {
 
 // Update map function
 function updateMap(year) {
-  document.getElementById('selected-year').innerText = year;
-    d3.json("/data?year=" + year).then(function(data) {
+    document.getElementById('selected-year').innerText = year;
+    fetch("/data?year=" + year)
+      .then(response => response.json())
+      .then(function(data) {
+        // Your code to handle the data goes here
+        console.log(data);
+    // Your code to handle the data goes here
+    console.log(data);
+
       console.log(data)
 
 
-        // Process data and update map
+        // Calculate width and height of the map container
+        var mapContainer = document.getElementById('map-container');
+        var mapWidth = mapContainer.offsetWidth;
+        var mapHeight = mapContainer.offsetHeight;
 
         // Remove existing map if any
         d3.select("#map svg").remove();
 
-        // Create SVG element for the map
+        // Create SVG element for the map with calculated dimensions
         var svg = d3
-            .select("#map")
-            .append("svg")
-            .attr("width", 750)
-            .attr("height", 550);
+    .select("#map-container")
+    .append("svg")
+    .attr("width", "100%") // Set width to 100% of container
+    .attr("height", "100%") // Set height to 100% of container
+    .attr("viewBox", "0 0 " + mapWidth + " " + mapHeight) // Maintain aspect ratio
+    .attr("preserveAspectRatio", "xMidYMid meet"); // Center SVG content
 
         // Define projection
-        var projection = d3.geoMercator().scale(150).translate([400, 300]);
+        var projection = d3.geoMercator().scale(160).translate([510, 240]);
 
         // Define path generator
         var path = d3.geoPath().projection(projection);
 
         // Define zoom behavior
-        var zoom = d3.zoom()
-            .scaleExtent([0.5, 8]) // Set zoom scale limits
-            .on("zoom", function zoomed(event) {
-                svg.selectAll("path").attr("transform", event.transform); // Apply transform to the map paths
-                svg.selectAll("text")
-                    .attr("x", function(d) { return event.transform.apply([projection([d.Longitude, d.Latitude])[0], projection([d.Longitude, d.Latitude])[1]])[0]; })
-                    .attr("y", function(d) { return event.transform.apply([projection([d.Longitude, d.Latitude])[0], projection([d.Longitude, d.Latitude])[1]])[1]; });
-            });
+var zoom = d3.zoom()
+.scaleExtent([0.5, 8]) // Set zoom scale limits
+.on("zoom", function() {
+    svg.selectAll("path").attr("transform", d3.event.transform); // Apply transform to the map paths
+    svg.selectAll("text")
+        .attr("x", function(d) { return d3.event.transform.apply(projection([d.Longitude, d.Latitude]))[0]; })
+        .attr("y", function(d) { return d3.event.transform.apply(projection([d.Longitude, d.Latitude]))[1]; });
+});
 
-        // Apply zoom behavior to SVG element
-        svg.call(zoom);
+// Apply zoom behavior to SVG element
+svg.call(zoom);
+
+// Reset zoom transform when no zoom is applied
+svg.call(zoom.transform, d3.zoomIdentity);
 
         // Load world map data
-        d3.json(
-            "https://raw.githubusercontent.com/d3/d3.github.com/master/world-110m.v1.json"
-        ).then(function(world) {
+        fetch("https://raw.githubusercontent.com/d3/d3.github.com/master/world-110m.v1.json")
+        .then(response => response.json())
+        .then(function(world) {
             // Draw world map
             svg
                 .selectAll("path")
@@ -112,7 +125,8 @@ function updateMap(year) {
             })
             .on("mouseover", function(event, d) {
               // Get mouse coordinates relative to the SVG element
-              var [x, y] = d3.pointer(event, this);
+              var [x, y] = d3.mouse(this);
+        
           
               // Show tooltip on mouseover
               tip
@@ -133,8 +147,16 @@ function updateMap(year) {
             .append("div")
             .attr("class", "tooltip")
             .style("opacity", 0);
+        }).catch(function(error) {
+          // Handle any errors that occur during the fetch
+          console.error('Error fetching world data:', error);
         });
-    });
+    })
+  .catch(function(error) {
+    // Handle any errors that occur during the fetch
+    console.error('Error fetching data:', error);
+  });
+  
 }
 // Get references to the slider and the span element for the selected year
 const slider = document.getElementById('year-slider');
@@ -166,375 +188,6 @@ updateSelectedYearPosition();
 // Add event listener to the slider for input change
 slider.addEventListener('input', updateSelectedYearPosition);
 
-
-// Fetch data from the endpoint
-d3.json("/aggregated_data")
-  .then(function(data) {
-    // Process the fetched data here
-    console.log(data); // Example: Log the data to see its structure
-    // Call the function to create the line graph with the fetched data
-    createLineGraph(data);
-  })
-  .catch(function(error) {
-    // Handle any errors that occur during the fetch request
-    console.error("Error fetching data:", error);
-  });
-
-  // Function to create line graph
-// function createLineGraph(data) {
-//   // Set up SVG dimensions and margins
-//   var margin = { top: 20, right: 20, bottom: 30, left: 50 };
-//   var width = 400 - margin.left - margin.right;
-//   var height = 400 - margin.top - margin.bottom;
-
-//   // Parse the data
-//   var years = [...new Set(data.map(d => d.Year))]; // Get unique years
-//   var regions = [...new Set(data.map(d => d.Region))]; // Get unique regions
-
-//   // Define scales
-//   var xScale = d3.scaleBand()
-//       .domain(years)
-//       .range([0, width])
-//       .padding(0.1);
-
-//   var yScale = d3.scaleLinear()
-//       .domain([0, d3.max(data, d => d.Health)])
-//       .nice()
-//       .range([height, 0]);
-
-//   // Define colors for regions
-//   var colorScale = d3.scaleOrdinal()
-//       .domain(regions)
-//       .range(d3.schemeCategory10);
-
-//   // Define line function
-//   var line = d3.line()
-//       .x(d => xScale(d.Year))
-//       .y(d => yScale(d.Health));
-
-//   // Append SVG
-//   var svg = d3.select("#chart")
-//       .append("svg")
-//       .attr("width", width + margin.left + margin.right)
-//       .attr("height", height + margin.top + margin.bottom)
-//       .append("g")
-//       .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-
-//   // Draw x axis
-//   svg.append("g")
-//       .attr("transform", "translate(0," + height + ")")
-//       .call(d3.axisBottom(xScale));
-
-//   // Draw y axis
-//   svg.append("g")
-//       .call(d3.axisLeft(yScale));
-
-//   // Draw lines for each region
-//   regions.forEach(region => {
-//       var regionData = data.filter(d => d.Region === region);
-//       svg.append("path")
-//           .datum(regionData)
-//           .attr("fill", "none")
-//           .attr("stroke", colorScale(region))
-//           .attr("stroke-width", 2)
-//           .attr("d", line);
-//   });
-
-//   // Add legend
-//   var legend = svg.append("g")
-//       .attr("transform", "translate(" + (width - 120) + "," + (margin.top + 10) + ")");
-
-//   regions.forEach((region, i) => {
-//       legend.append("rect")
-//           .attr("x", 0)
-//           .attr("y", i * 20)
-//           .attr("width", 10)
-//           .attr("height", 10)
-//           .attr("fill", colorScale(region));
-
-//       legend.append("text")
-//           .attr("x", 15)
-//           .attr("y", i * 20 + 9)
-//           .attr("dy", "0.35em")
-//           .text(region)
-//           .style("fill", "#64ffda"); // Set text color to #64ffda
-// // Adjust x-axis label position
-// svg.append("text")
-//     .attr("class", "x-axis-label")
-//     .attr("text-anchor", "end")
-//     .attr("x", width)
-//     .attr("y", height + margin.top + margin.bottom)
-//     .text("Year");
-
-// // Adjust y-axis label position
-// svg.append("text")
-//     .attr("class", "y-axis-label")
-//     .attr("transform", "rotate(-90)")
-//     .attr("y", 0 - margin.left)
-//     .attr("x", 0 - (height / 2))
-//     .attr("dy", "1em")
-//     .style("text-anchor", "middle")
-//     .text("Average Health Score");
-
-//   // Define tooltip
-// var tooltip = d3.select("body").append("div")
-// .attr("class", "tooltip")
-// .style("opacity", 0);
-
-// // Adjust tooltip position
-// svg.selectAll(".dot")
-// .on("mouseover", function(d) {
-//     tooltip.transition()
-//         .duration(200)
-//         .style("opacity", .9);
-//     tooltip.html(d.Region + "<br/>" + d.Year + ": " + d.Health)
-//         .style("left", (d3.event.pageX) + "px")  // Adjust left position
-//         .style("top", (d3.event.pageY - 28) + "px");  // Adjust top position
-// })
-// .on("mouseout", function(d) {
-//     tooltip.transition()
-//         .duration(500)
-//         .style("opacity", 0);
-// });
-
-      
-//   });
-// }
-function createLineGraph(data){
-// Specify the chart’s dimensions.
-const width = 928;
-const height = 600;
-const marginTop = 20;
-const marginRight = 40;
-const marginBottom = 30;
-const marginLeft = 40;
-const colorScale = d3.scaleOrdinal(d3.schemeCategory10);
-
-// Create the SVG container.
-const svg = d3.create("svg")
-    .attr("width", width)
-    .attr("height", height)
-    .attr("viewBox", [0, 0, width, height])
-    .attr("style", "max-width: 100%; height: auto; -webkit-tap-highlight-color: transparent;");
-
-    const nestedData = d3.group(data, d => d.Region);
-
-    // Extract unique regions
-    const regions = Array.from(nestedData.keys());
-
-    // Create line generator
-    const line = d3.line()
-        .x(d => x(d.Year))
-        .y(d => y(d.Health))
-        .curve(d3.curveMonotoneX);
-
-    // Create scales
-    const x = d3.scaleLinear()
-        .domain(d3.extent(data, d => d.Year))
-        .range([marginLeft, width - marginRight]);
-
-    const y = d3.scaleLinear()
-        .domain([0, d3.max(data, d => d.Health)])
-        .range([height - marginBottom, marginTop]);
-
-    // Create axes
-    const xAxis = d3.axisBottom(x).ticks(width / 80).tickSizeOuter(0);
-    const yAxis = d3.axisLeft(y);
-
-    svg.append("g")
-        .attr("transform", `translate(0,${height - marginBottom})`)
-        .call(xAxis)
-        .call(g => g.select(".domain").remove());
-
-    svg.append("g")
-        .attr("transform", `translate(${marginLeft},0)`)
-        .call(yAxis)
-        .call(g => g.selectAll(".tick line").clone()
-            .attr("stroke-opacity", 0.2)
-            .attr("x2", width - marginLeft - marginRight))
-        .call(g => g.select(".domain").remove());
-
-    // Plot lines for each region
-    regions.forEach((region, i) => {
-        const regionData = nestedData.get(region);
-        svg.append("path")
-            .datum(regionData)
-            .attr("fill", "none")
-            .attr("stroke", colorScale(region))
-            .attr("stroke-width", 2)
-            .attr("d", line);
-    });
-
-
-// Append the SVG container to the DOM.
-document.getElementById("chart").appendChild(svg.node());
-}
-
-const w = 520;
-const h = 300;
-const startAngle = 0;
-const endAngle = 4 * Math.PI;
-const stroke = 5;
-const innerRadius = h/4;
-const outerRadius = h/2 - stroke;
-
-// Create SVG
-const pieSvg = d3.select("#pie-chart")
-.append("svg")
-  .attr('width', w)
-  .attr('height', h);
-
-// Create Arc for
-const arc = d3.arc()
-  .innerRadius(innerRadius)
-  .outerRadius(outerRadius);
-
-const cScale = d3.scaleOrdinal(d3.schemeCategory10);
-
-// Function to create the pie chart
-function createPieChart(year) {
- // Fetch data from Flask endpoint
- fetch(`/count_by_region_and_year?year=${year}`)
- .then(response => response.json())
- .then(data => {
-   // Convert data to array of objects
-   const dataset = Object.entries(data).map(([region, count]) => ({ name: region, value: count }));
-
-   // Remove existing pie chart elements
-   pieSvg.selectAll('.arc').remove();
-   pieSvg.selectAll('#mainText').remove();
-
-   // Create PIE Data converter
-   const pie = d3.pie()
-     .value(d => d.value)
-     .startAngle(startAngle)
-     .endAngle(endAngle);
-
-   const center = pieSvg.append('g')
-     .attr('transform', `translate(${h/2}, ${h/2})`);
-
-   const centerSvg = center.append('circle')
-     .attr('fill', cScale(0))
-     .attr('r', outerRadius - innerRadius);
-
-   const text = center.append('text')
-     .attr('text-anchor', 'middle')
-     .attr('transform', `translate(0, 10)`)
-     .attr('font-size', ".8rem")
-     .attr('fill', '#64ffda')
-     .attr('id', "mainText")
-     .html("Region");
-
-   const arcs = pieSvg
-     .selectAll('g.arc')
-     .data(pie(dataset))
-     .join('g')
-       .classed('arc', true)
-       .attr('transform', `translate(${h/2}, ${h/2})`);
-
-   arcs.append('path')
-     .attr('fill', (d, i) => cScale(i + 1))
-     .attr('d', arc)
-     .on("mousemove", handleMouseOver)
-     .on("mouseout", handleMouseOut)
-     .append('title')    // Alt-text for the pie slice
-       .text(d => d.data.name);
-   
-   // Raise text elements to display in front of arcs
-   arcs.selectAll('text')
-     .style('z-index', 1); // Set z-index to bring text in front of arcs
- })
- .catch(error => console.error('Error fetching data:', error));
-}
-
-
-
-function handleMouseOver(d, i) {
-  d3.select(this)
-    .attr("stroke", "#64ffda")
-    .attr("stroke-width", stroke);
-  d3.select(this)
-    .transition()
-    .duration(500)
-    .attr('transform', GetTransform);
-  d3.select('#mainText')
-    .html(`${d.target.__data__.data.name} ${d.target.__data__.data.value}%`)
-    .style('z-index', 1); // Adjust the z-index to bring the text to the front
-}
-
-
-function GetTransform(d) {
-  var dist = 1;
-  d.midAngle = ((d.endAngle - d.startAngle)/2) + d.startAngle;
-  var x = Math.sin(d.midAngle) * dist;
-  var y = Math.cos(d.midAngle) * dist;
-  return 'translate(' + x + ',' + y + ')';
-}
-
-function handleMouseOut(d,i){
-  d3.select(this)
-    .attr("stroke-width","0px");
-  d3.select(this)
-    .transition()
-    .duration(500)
-    .attr('transform','translate(0,0)');
-
-    d3.select('#mainText')
-    .html("Region")
-    .style('z-index', 'auto'); // Reset the z-index to its default value
-}
-
-
-document.getElementById("pie-chart").appendChild(pieSvg.node());
-
-
-// Define global variables for the initial state
-let selectedRegion = "All"; // Initial region selection
-
-// Function to load data and create the horizontal bar chart
-function loadDataAndCreateChart(year, region) {
-    fetch(`/data?year=${year}&region=${region}`)
-        .then(response => response.json())
-        .then(data => {
-            // Sort the data by happiness score in descending order
-            data.sort((a, b) => b["Ladder score"] - a["Ladder score"]);
-            // Extract top 10 countries
-            const topCountries = data.slice(0, 10);
-            // Call the function to create the bar chart with the top 10 countries
-            createBarChart(topCountries);
-        })
-        .catch(error => console.error("Error fetching data:", error));
-}
-
-// Function to handle dropdown selection change
-function handleRegionChange() {
-    selectedRegion = this.value; // Update the selected region
-    // Reload the data and update the chart with the new region
-    loadDataAndCreateChart(2024, selectedRegion);
-}
-
-// Initialize the dropdown and chart on page load
-document.addEventListener("DOMContentLoaded", function() {
-    // Create the dropdown of regions
-    const regionDropdown = document.getElementById("region-dropdown");
-    regionDropdown.addEventListener("change", handleRegionChange);
-
-    // Fetch and populate the regions dropdown
-    fetch("/regions")
-        .then(response => response.json())
-        .then(regions => {
-            regions.forEach(region => {
-                const option = document.createElement("option");
-                option.value = region;
-                option.textContent = region;
-                regionDropdown.appendChild(option);
-            });
-        })
-        .catch(error => console.error("Error fetching regions:", error));
-
-    // Load the initial data and create the chart for the top 10 countries
-    loadDataAndCreateChart(2024, selectedRegion);
-});
 
 
 // Function to create the horizontal bar chart
@@ -636,17 +289,531 @@ function handleMouseOver(event, d) {
 }
 
 
+const keys = ['Economy', 'Social support', 'Health', 'Freedom', 'Trust', 'Generosity'];
+    const colorScale = d3.scaleOrdinal()
+      .domain(keys)
+      .range(['#e41a1c', '#377eb8', '#4daf4a', '#984ea3', '#ff7f00', '#ffff33', '#a65628', '#f781bf']);
 
-// Event listener for year slider
-document.getElementById("year-slider").addEventListener("input", function () {
-    const year = +this.value;
-    const region = document.getElementById("region-dropdown").value;
-    loadDataAndCreateChart(year, region);
-});
+    const initialXAttribute = 'Economy';
+    const yAttribute = 'Ladder score';
 
-// Event listener for region dropdown
-document.getElementById("region-dropdown").addEventListener("change", function () {
-    const year = document.getElementById("year-slider").value;
-    const region = this.value;
-    loadDataAndCreateChart(year, region);
-});
+    const margin = { top: 20, right: 20, bottom: 30, left: 40 };
+    const width = 500 - margin.left - margin.right;
+    const height = 300 - margin.top - margin.bottom;
+
+    const svg = d3.select('#bubble-chart')
+      .append('svg')
+      .attr('width', width + margin.left + margin.right)
+      .attr('height', height + margin.top + margin.bottom)
+      .append('g')
+      .attr('transform', `translate(${margin.left}, ${margin.top})`);
+
+    const x = d3.scaleLinear()
+      .range([0, width]);
+
+    const y = d3.scaleLinear()
+      .range([height, 0]);
+
+    const radius = d3.scaleSqrt()
+      .range([5, 20]);
+
+    const color = d3.scaleOrdinal()
+      .range(d3.schemeCategory10);
+
+    const xAxisGroup = svg.append('g')
+      .attr('transform', `translate(0, ${height})`);
+
+    const yAxisGroup = svg.append('g');
+
+    const legendmargin = { left: 20 };
+    const legendElement = createLegend(keys, colorScale, legendmargin).node();
+    document.getElementById('legend-chart').appendChild(legendElement);
+
+    function createLegend(keys, colorScale, margin) {
+      const legend = d3.select('body')
+        .append('div')
+        .style('display', 'flex')
+        .style('align-items', 'center')
+        .style('min-height', '33px')
+        .style('font', '10px sans-serif')
+        .style('margin-left', `${margin.left}px`);
+
+      const legendItems = legend.append('div');
+
+      const legendItem = legendItems.selectAll('.legend-item')
+  .data(keys)
+  .enter()
+  .append('span')
+  .classed('legend-item', true)
+  .style('display', 'inline-flex')
+  .style('align-items', 'center')
+  .style('margin-right', '1em')
+  .style('cursor', 'pointer')
+  .on('click', function(d) { updateChart(d3.select(this).datum()); })
+
+      legendItem.append('div')
+        .classed('legend-rect', true)
+        .style('width', '12px')
+        .style('height', '12px')
+        .style('margin-right', '0.5em')
+        .style('background-color', d => colorScale(d));
+
+      legendItem.append('text')
+        .text(d => d);
+
+      return legend;
+    }
+
+    let data;
+
+    function updateScales(selectedAttribute) {
+      x.domain(d3.extent(data, d => d[selectedAttribute]));
+      y.domain(d3.extent(data, d => d[yAttribute]));
+      radius.domain(d3.extent(data, d => d.Population));
+      color.domain(d3.map(data, d => d.Region).keys());
+    }
+    function updateAxes() {
+      const xAxis = d3.axisBottom(x);
+      const yAxis = d3.axisLeft(y);
+    
+      // Update x axis
+      xAxisGroup.call(xAxis)
+        .selectAll("path") // Select the axis line
+        .style("stroke", "#64ffda"); // Change color of x axis line
+      
+      xAxisGroup.selectAll("text") // Select all text elements of x axis
+        .style("fill", "#64ffda"); // Change color of text labels
+    
+      // Update y axis
+      yAxisGroup.call(yAxis)
+        .selectAll("path") // Select the axis line
+        .style("stroke", "#64ffda"); // Change color of y axis line
+      
+      yAxisGroup.selectAll("text") // Select all text elements of y axis
+        .style("fill", "#64ffda"); // Change color of text labels
+    }
+    
+    
+    function updateCircles(selectedAttribute) {
+      const circles = svg.selectAll('circle')
+        .data(data);
+
+        circles.enter()
+        .append('circle')
+        .attr('cx', d => x(d[selectedAttribute]))
+        .attr('cy', d => y(d[yAttribute]))
+        .attr('r', d => radius(d.Population) * 1.4) // Double the radius for larger bubbles
+        .attr('fill', d => color(d.Region))
+        .attr('opacity', 0.7) // Set transparency to 0.7 (adjust as needed)
+        // .on('mouseover', function(event, d) {
+        //   const tooltip = d3.select('body')
+        //     .append('div')
+        //     .style('position', 'absolute')
+        //     .style('background-color', 'rgba(0, 0, 0, 0.8)') // Semi-transparent background
+        //     .style('color', 'white')
+        //     .style('padding', '5px')
+        //     .style('border-radius', '5px')
+        //     .style('pointer-events', 'none');
+      
+        //   tooltip.html(`
+        //     <p>Country: ${d.Country}</p>
+        //     <p>Region: ${d.Region}</p>
+        //     <p>${yAttribute}: ${d[yAttribute]}</p>
+        //     <p>${selectedAttribute}: ${d[selectedAttribute]}</p>
+        //   `);
+      
+        //   // Replace const tooltipWidth = tooltip.node().offsetWidth;
+        //   const tooltipWidth = tooltip.style('width');
+      
+        //   // Replace const tooltipHeight = tooltip.node().offsetHeight;
+        //   const tooltipHeight = tooltip.style('height');
+      
+        //   const left = event.pageX + 10;
+        //   const top = event.pageY - tooltipHeight - 10;
+      
+        //   tooltip
+        //     .style('left', `${left}px`)
+        //     .style('top', `${top}px`);
+        // })
+        // .on('mouseout', function() {
+        //   d3.select('body').selectAll('div').remove();
+        // })
+        .merge(circles)
+        .transition()
+        .duration(500)
+        .attr('cx', d => x(d[selectedAttribute]))
+        .attr('cy', d => y(d[yAttribute]));
+      circles.exit().remove();
+    }
+ 
+    // function updateRegionLegend() {
+    //   const regionLegendGroup = svg.selectAll('.region-legend-group')
+    //     .data([null]);
+
+    //   const newRegionLegendGroup = regionLegendGroup.enter()
+    //     .append('g')
+    //     .classed('region-legend-group', true)
+    //     .attr('transform', `translate(${width - 120}, ${height - 120})`);
+
+    //   const regionLegend = newRegionLegendGroup.selectAll('.region-legend')
+    //     .data(color.domain());
+
+    //   const newRegionLegend = regionLegend.enter()
+    //     .append('g')
+    //     .classed('region-legend', true);
+
+    //   newRegionLegend.append('rect')
+    //     .classed('region-legend-color', true)
+    //     .attr('x', 0)
+    //     .attr('y', (d, i) => i * 20)
+    //     .attr('width', 10)
+    //     .attr('height', 10)
+    //     .style('fill', d => color(d));
+
+    //   newRegionLegend.append('text')
+    //     .attr('x', 15)
+    //     .attr('y', (d, i) => i * 20 + 9)
+    //     .text(d => d);
+
+    //   regionLegend.exit().remove();
+    // }
+
+    function updateChart(selectedAttribute) {
+      console.log('Selected Attribute:', selectedAttribute);
+
+      if (!data) {
+        console.log('Data not available yet.');
+        return;
+      }
+
+      updateScales(selectedAttribute);
+      updateAxes();
+      updateCircles(selectedAttribute);
+    }
+
+    fetch('/data')
+      .then(response => response.json())
+      .then(fetchedData => {
+        data = fetchedData;
+        updateChart(initialXAttribute);
+      })
+      .catch(error => console.error(error));
+
+
+      var marginPCP = { top: 50, right: 10, bottom: 10, left: 40 };
+      var widthPCP = 600 - marginPCP.left - marginPCP.right;
+      let heightPCP = 350 - marginPCP.top - marginPCP.bottom;
+      
+      var xScale = d3.scalePoint().rangeRound([0, widthPCP]).padding(1),
+      yScale = {},
+      dragging = {};
+      var c = d3
+      .select("#parallel-coordinates-plot")
+      .append("div")
+      .attr("class", "parcoords")
+      .style("width", widthPCP + marginPCP.left + marginPCP.right + "px")
+      .style("height", heightPCP + marginPCP.top + marginPCP.bottom + "px");
+      
+      var svgDiv = c
+      .append("svg")
+      .attr("width", widthPCP + marginPCP.left + marginPCP.right)
+      .attr("height", heightPCP + marginPCP.top + marginPCP.bottom)
+      .append("g")
+      .attr("transform", "translate(" + marginPCP.left + "," + marginPCP.top + ")");
+      
+      var num_line = d3.line(),
+      //axis = d3.axisLeft(x),
+      num_background,
+      num_foreground,
+      num_extents,
+      // dimensions,
+      origDimensions;
+        var quant_p = function (v) {
+          return parseFloat(v) == v || v == "";
+        };
+      
+      //numerical data
+      fetch("/pcp_data")
+        .then((response) => response.json())
+        .then((data) => {
+          console.log("pcp data",data)
+
+          dimensions = d3.keys(data[0]);
+          origDimensions = dimensions.slice(0);
+      
+          xScale.domain(dimensions);
+      
+          dimensions.forEach(function (d) {
+            var vals = data.map(function (p) {
+              return p[d];
+            });
+            if (vals.every(quant_p)) {
+              yScale[d] = d3
+                .scaleLinear()
+                .domain(
+                  d3.extent(data, function (p) {
+                    return +p[d];
+                  })
+                )
+                .range([height, 0]);
+            } else {
+              vals.sort();
+              yScale[d] = d3
+                .scalePoint()
+                .domain(
+                  vals.filter(function (v, i) {
+                    return vals.indexOf(v) == i;
+                  })
+                )
+                .range([height, 0], 1);
+            }
+          });
+      
+          num_extents = dimensions.map(function (p) {
+            return [0, 0];
+          });
+      
+          // Add grey background lines for context.
+          num_background = svgDiv
+            .append("g")
+            .attr("class", "background")
+            .selectAll("path")
+            .data(data)
+            .enter()
+            .append("path")
+            .attr("d", path_num);
+      
+          // Add blue foreground lines for focus.
+          num_foreground = svgDiv
+            .append("g")
+            .attr("class", "foreground")
+            .selectAll("path")
+            .data(data)
+            .enter()
+            .append("path")
+            .attr("d", path_num);
+      
+          var g = svgDiv
+            .selectAll(".dimension")
+            .data(dimensions)
+            .enter()
+            .append("g")
+            .attr("class", "dimension")
+            .attr("transform", function (d) {
+              return "translate(" + xScale(d) + ")";
+            })
+            .call(
+              d3
+                .drag()
+                .subject(function (d) {
+                  return { x: xScale(d) };
+                })
+                .on("start", function (d) {
+                  dragging[d] = xScale(d);
+                  num_background.attr("visibility", "hidden");
+                })
+                .on("drag", function (d) {
+                  dragging[d] = Math.min(width, Math.max(0, d3.event.x));
+                  num_foreground.attr("d", path_num);
+                  dimensions.sort(function (a, b) {
+                    return position_num(a) - position_num(b);
+                  });
+                  // extents.forEach(function(ext, idx) {
+                  //   if(origDi)
+      
+                  // })
+                  xScale.domain(dimensions);
+                  g.attr("transform", function (d) {
+                    return "translate(" + position_num(d) + ")";
+                  });
+                })
+                .on("end", function (d) {
+                  delete dragging[d];
+                  transition_num(d3.select(this)).attr(
+                    "transform",
+                    "translate(" + xScale(d) + ")"
+                  );
+                  transition_num(num_foreground).attr("d", path_num);
+                  num_background
+                    .attr("d", path_num)
+                    .transition()
+                    .delay(500)
+                    .duration(0)
+                    .attr("visibility", null);
+      
+                  var new_extents = [];
+                  for (var i = 0; i < dimensions.length; ++i) {
+                    new_extents.push(num_extents[origDimensions.indexOf(dimensions[i])]);
+                  }
+                  num_extents = new_extents;
+                  origDimensions = dimensions.slice(0);
+                })
+            );
+      
+          // Add an axis and title.
+          var g = svgDiv.selectAll(".dimension");
+          g.append("g")
+            .attr("class", "axis")
+            .each(function (d) {
+              d3.select(this).call(d3.axisLeft(yScale[d]));
+            })
+            //text does not show up because previous line breaks somehow
+            .append("text")
+            .attr("fill", "black")
+            .style("text-anchor", "middle")
+            .attr("y", -9)
+            .text(function (d) {
+              return d;
+            });
+      
+          // Add and store a brush for each axis.
+          g.append("g")
+            .attr("class", "brush")
+            .each(function (d) {
+              if (yScale[d].name == "r") {
+                // console.log(this);
+      
+                d3.select(this).call(
+                  (yScale[d].brush = d3
+                    .brushY()
+                    .extent([
+                      [-8, 0],
+                      [8, height],
+                    ])
+                    .on("start", brushstart_num)
+                    .on("brush", brush_parallel_chart_num))
+                );
+              }
+            })
+            .selectAll("rect")
+            .attr("x", -8)
+            .attr("width", 16);
+      
+             // Add title
+             svgDiv
+        .append("text")
+        .attr("x", 300)
+        .attr("y", -35 )
+        .attr("text-anchor", "middle")
+        .style("font-size", "18px")
+        .style("fill", "#8892b0")
+        .style("font-weight", "bold")
+        .text("Parallel Coordinates Plot (PCP)");
+        });
+        function position_num(d) {
+          var v = dragging[d];
+          return v == null ? xScale(d) : v;
+        }
+        
+        function transition_num(g) {
+          return g.transition().duration(500);
+        }
+        
+        // Returns the path for a given data point.
+        function path_num(d) {
+          return num_line(
+            dimensions.map(function (p) {
+              return [position_num(p), yScale[p](d[p])];
+            })
+          );
+        }
+        
+        // brush start function
+        function brushstart_num() {
+          d3.event.sourceEvent.stopPropagation();
+        }
+        
+        // Handles a brush event, toggling the display of foreground lines.
+        function brush_parallel_chart_num() {
+          for (var i = 0; i < dimensions.length; ++i) {
+            if (d3.event.target == yScale[dimensions[i]].brush) {
+              num_extents[i] = d3.event.selection.map(
+                yScale[dimensions[i]].invert,
+                yScale[dimensions[i]]
+              );
+            }
+          }
+        
+          num_foreground.style("display", function (d) {
+            return dimensions.every(function (p, i) {
+              if (num_extents[i][0] == 0 && num_extents[i][0] == 0) {
+                return true;
+              }
+              return num_extents[i][1] <= d[p] && d[p] <= num_extents[i][0];
+            })
+              ? null
+              : "none";
+          });
+        }
+        
+        function redrawPCP(selectedDimensions,data) {
+          // Update axis labels
+          // svgDiv.selectAll(".dimension")
+          //   .style("display", function(d) {
+          //     return selectedDimensions.includes(d) ? null : "none";
+          //   })
+          //   .attr("transform", function(d) {
+          //     return "translate(" + xScale(d) + ")";
+          //   });
+          // svgDiv.selectAll(".background").remove();
+          //  // Update scale domains
+          //  xScale.domain(selectedDimensions);
+        
+          //  // Update axis labels
+          //  svgDiv.selectAll(".dimension")
+          //      .attr("transform", function(d) {
+          //          return "translate(" + xScale(d) + ")";
+          //      });
+        
+          //  // Redraw polylines
+          //  svgDiv.selectAll(".foreground path")
+          //      .attr("d", path_num)
+          //      .style("display", function(d) {
+          //     return selectedDimensions.every(function(dim) {
+          //       return !isNaN(d[dim]);
+          //     }) ? null : "none";
+          //   })
+          //   .attr("d", function(d) {
+          //     return path_num(d);
+          //   });
+        
+        // Reorder dimensions based on the selectedDimensions
+        dimensions = selectedDimensions.concat(dimensions.filter(d => !selectedDimensions.includes(d)));
+            
+        // Update xScale domain
+        xScale.domain(dimensions);
+        
+        // Update dimension groups
+        svgDiv.selectAll(".dimension")
+            .transition()
+            .duration(1000)
+            .attr("transform", function (d) {
+                return "translate(" + xScale(d) + ")";
+            });
+        
+        // Update axis labels
+        svgDiv.selectAll(".dimension .axis")
+            .each(function (d) {
+                d3.select(this).call(d3.axisLeft(yScale[d]));
+            });
+        
+        // Update brush for each axis
+        svgDiv.selectAll(".dimension .brush")
+            .each(function (d) {
+                if (yScale[d].name == "r") {
+                    d3.select(this).call(yScale[d].brush);
+                }
+            });
+        
+        // Update foreground lines
+        svgDiv.selectAll(".foreground path")
+            .transition()
+            .duration(1000)
+            .attr("d", path_num);
+        }
+        
+        function generatePath(selectedDimensions, d) {
+        return path_num(selectedDimensions.map(function(dim) {
+            return [xScale(dim), yScale[dim](d[dim])];
+        }));
+        }
