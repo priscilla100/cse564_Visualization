@@ -1,4 +1,46 @@
+.chart-container {
+  position: relative; /* Container for reference positioning */
+}
 
+#map-legend {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  width: 150px;
+  height: auto;
+  padding: 10px;
+  background-color: rgba(209, 232, 226, 0.7); /* #D1E8E2 with 70% opacity */
+  border: 1px solid #ddd;
+  z-index: 10;
+  overflow: hidden;
+  box-sizing: border-box;
+  border-radius: 5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  font-size: 0.9rem;
+}
+
+
+
+
+#map-legend h3 {
+  margin-top: 0;
+}
+
+#map-legend ul {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+
+#map-legend li {
+  display: flex;
+  align-items: center;
+  margin-bottom: 5px;
+}
+
+#map-legend li span:first-child {
+  margin-right: 10px;
+}
 .chart-container {
   display: flex;
   flex-direction: column;
