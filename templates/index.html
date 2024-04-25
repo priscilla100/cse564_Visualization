@@ -18,48 +18,47 @@
     <!-- <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script> -->
 
-<style>
-.chart-container {
-  display: flex;
-  flex-direction: column;
-  height: 100vh; /* Adjust the height as needed */
-}
+    <style>
+      .chart-container {
+        display: flex;
+        flex-direction: column;
+        height: 100vh; /* Adjust the height as needed */
+      }
 
-.row {
-  display: flex;
-  flex: 1; /* Equal height for both rows */
-}
+      .row {
+        display: flex;
+        flex: 1; /* Equal height for both rows */
+      }
 
-.chart {
-  /* background-color: #f0f0f0; */
-  background-color: #0a192f;
+      .chart {
+        /* background-color: #f0f0f0; */
+        background-color: #0a192f;
 
-  border: 1px solid #64ffda; /* Adjust the border as needed */
-  color: #8892b0; /* Optionally, set text color to white for better contrast */
+        border: 1px solid #64ffda; /* Adjust the border as needed */
+        color: #8892b0; /* Optionally, set text color to white for better contrast */
+      }
 
-}
+      .chart1 {
+        flex: 8; /* Portion of 8 */
+      }
 
-.chart1 {
-  flex: 8; /* Portion of 8 */
-}
+      .column {
+        flex: 4; /* Portion of 4 */
+        display: flex;
+        flex-direction: column;
+      }
 
-.column {
-  flex: 4; /* Portion of 4 */
-  display: flex;
-  flex-direction: column;
-}
+      .chart2,
+      .chart3 {
+        flex: 1; /* Equal portions for the two charts */
+      }
 
-.chart2,
-.chart3 {
-  flex: 1; /* Equal portions for the two charts */
-}
-
-.chart4,
-.chart5,
-.chart6 {
-  flex: 1; /* Equal portions for the three charts */
-}
-/* #selected-year {
+      .chart4,
+      .chart5,
+      .chart6 {
+        flex: 1; /* Equal portions for the three charts */
+      }
+      /* #selected-year {
         position: absolute;
         top: 70px;
         left: 0px;
@@ -68,97 +67,126 @@
         margin-bottom: 20px;
       } */
       .legend-item {
-            display: inline-block;
-            margin-right: 10px;
-            cursor: pointer;
-        }
+        display: inline-block;
+        margin-right: 10px;
+        cursor: pointer;
+      }
 
-        .legend-item rect {
-            display: inline-block;
-            vertical-align: middle;
-        }
+      .legend-item rect {
+        display: inline-block;
+        vertical-align: middle;
+      }
 
-        .legend-item text {
-            display: inline-block;
-            vertical-align: middle;
-            margin-left: 5px;
-            font-size: 10px;
-            fill: #64ffda;
-        }
+      .legend-item text {
+        display: inline-block;
+        vertical-align: middle;
+        margin-left: 5px;
+        font-size: 10px;
+        fill: #64ffda;
+      }
 
-    .region-legend {
-      font-size: 10px;
-      font-family: sans-serif;
-      display: flex;
-      align-items: center;
-      margin-bottom: 5px;
-    }
-    .region-legend-color {
-      width: 10px;
-      height: 10px;
-      margin-right: 5px;
-    }
+      .region-legend {
+        font-size: 10px;
+        font-family: sans-serif;
+        display: flex;
+        align-items: center;
+        margin-bottom: 5px;
+      }
+      .region-legend-color {
+        width: 10px;
+        height: 10px;
+        margin-right: 5px;
+      }
 
-    .line {
-  fill: none;
-  stroke-width: 2;
-}
+      .line {
+        fill: none;
+        stroke-width: 2;
+      }
 
-.axis path {
-  fill: none;
-  stroke: #999; /* Light gray */
-  shape-rendering: crispEdges;
-}
+      .axis path {
+        fill: none;
+        stroke: #999; /* Light gray */
+        shape-rendering: crispEdges;
+      }
 
-.axis text {
-  font-size: 10px;
-  fill: white; /* Dark gray */
-}
+      .axis text {
+        font-size: 10px;
+        fill: white; /* Dark gray */
+      }
 
-.dragging {
-  fill: none;
-  pointer-events: all;
-  cursor: move;
-}
+      .dragging {
+        fill: none;
+        pointer-events: all;
+        cursor: move;
+      }
 
-.background path {
-  fill: none;
-  stroke: #e0e0e0; /* Lighter gray */
-  stroke-opacity: 0.4;
-  shape-rendering: crispEdges;
-}
+      .background path {
+        fill: none;
+        stroke: #e0e0e0; /* Lighter gray */
+        stroke-opacity: 0.4;
+        shape-rendering: crispEdges;
+      }
 
-.foreground path {
-  fill: none;
-  stroke: #007bff; /* Blue */
-  stroke-opacity: 0.7;
-}
+      .foreground path {
+        fill: none;
+        stroke: #007bff; /* Blue */
+        stroke-opacity: 0.7;
+      }
 
-.brush .extent {
-  fill-opacity: 0.3;
-  stroke: #fff;
-  shape-rendering: crispEdges;
-}
+      .brush .extent {
+        fill-opacity: 0.3;
+        stroke: #fff;
+        shape-rendering: crispEdges;
+      }
 
-.axis line,
-.axis path {
-  fill: none;
-  stroke: #64ffda; /* Aqua */
-  shape-rendering: crispEdges;
-}
+      .axis line,
+      .axis path {
+        fill: none;
+        stroke: #64ffda; /* Aqua */
+        shape-rendering: crispEdges;
+      }
 
-.axis text {
-  text-shadow: none; /* Remove text shadow */
-  cursor: pointer; /* Change cursor to pointer */
-}
-</style>
-</head>
-<body>
+      .axis text {
+        text-shadow: none; /* Remove text shadow */
+        cursor: pointer; /* Change cursor to pointer */
+      }
 
+      .chart-gauge {
+        width: 400px;
+        margin: 10px auto;
+      }
+      .chart-color1 {
+        /* fill: #DEA82C */
+        fill: #e92213;
+      }
+
+      .chart-color2 {
+        /* fill: #E9621A} */
+        fill: #dea82c;
+      }
+
+      .chart-color3 {
+        /* fill: #e92213} */
+        fill: rgba(124, 190, 124, 0.919);
+      }
+
+      .needle,
+      .needle-center {
+        fill: #8892b0;
+      }
+
+      .prose {
+        text-align: "center";
+        font-family: "sans-serif";
+        color: "#ababab";
+      }
+    </style>
+  </head>
+  <body>
     <div class="chart-container">
-        <div class="row">
-          <div class="chart chart1" id="map-container">
-            <span id="selected-year">2024</span>
+      <div class="row">
+        <div class="chart chart1" id="map-container">
+          <span id="selected-year">2024</span>
           <!-- class="form-range" -->
           <input
             type="range"
@@ -169,36 +197,37 @@
             id="year-slider"
           />
           <div id="map"></div>
-
-          </div>
-          <div class="column">
-            <div class="chart chart2">
-                <div id="parallel-coordinates-plot"></div>
-
-            </div>
-            <div class="chart chart3">chart 3</div>
-          </div>
         </div>
-        <div class="row">
-
-          <div class="chart chart4" id="map-container">
-            <div id="legend-chart"></div>
-
-            <div id="bubble-chart"></div>
- </div>
-          <div class="chart chart5">chart 5</div>
-          <div class="chart chart6">chart 6</div>
+        <div class="column">
+          <div class="chart chart2">
+            <div id="parallel-coordinates-plot"></div>
+          </div>
+          <div class="chart chart3">chart 3</div>
         </div>
       </div>
+      <div class="row">
+        <div class="chart chart4" id="map-container">
+          <div id="legend-chart"></div>
+
+          <div id="bubble-chart"></div>
+        </div>
+        <div class="chart chart5"></div>
+        <div class="chart chart6">
+          <div id="chart-gauge" class="chart-gauge"></div>
+
+          <!-- <svg id="gauge" width="300" height="300"></svg> -->
+        </div>
+      </div>
+    </div>
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <!-- <script src="https://d3js.org/d3.v7.min.js"></script> -->
     <!-- Load d3.js -->
-<script src="https://d3js.org/d3.v4.js"></script>
+    <script src="https://d3js.org/d3.v4.js"></script>
 
-<!-- Load color scale -->
-<script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
+    <!-- Load color scale -->
+    <script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
 
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>
-</body>
+  </body>
 </html>

@@ -292,7 +292,10 @@ function handleMouseOver(event, d) {
 const keys = ['Economy', 'Social support', 'Health', 'Freedom', 'Trust', 'Generosity'];
     const colorScale = d3.scaleOrdinal()
       .domain(keys)
-      .range(['#e41a1c', '#377eb8', '#4daf4a', '#984ea3', '#ff7f00', '#ffff33', '#a65628', '#f781bf']);
+      
+      .range(['#8892b0', '#8892b0', '#8892b0', '#8892b0', '#8892b0', '#8892b0', '#8892b0', '#8892b0']);
+
+      // .range(['#e41a1c', '#377eb8', '#4daf4a', '#984ea3', '#ff7f00', '#ffff33', '#a65628', '#f781bf']);
 
     const initialXAttribute = 'Economy';
     const yAttribute = 'Ladder score';
@@ -402,7 +405,7 @@ const keys = ['Economy', 'Social support', 'Health', 'Freedom', 'Trust', 'Genero
         .append('circle')
         .attr('cx', d => x(d[selectedAttribute]))
         .attr('cy', d => y(d[yAttribute]))
-        .attr('r', d => radius(d.Population) * 1.4) // Double the radius for larger bubbles
+        .attr('r', d => radius(d.Population) * 1.2) // Double the radius for larger bubbles
         .attr('fill', d => color(d.Region))
         .attr('opacity', 0.7) // Set transparency to 0.7 (adjust as needed)
         // .on('mouseover', function(event, d) {
@@ -817,3 +820,107 @@ const keys = ['Economy', 'Social support', 'Health', 'Freedom', 'Trust', 'Genero
             return [xScale(dim), yScale[dim](d[dim])];
         }));
         }
+
+ 
+
+// Define variables
+const percent = 0.65;
+const barWidth = 40;
+const numSections = 3;
+const sectionPerc = 1 / numSections / 2;
+const padRad = 0.05;
+const chartInset = 10;
+
+// Define helper functions
+const percToDeg = (perc) => perc * 360;
+const percToRad = (perc) => degToRad(percToDeg(perc));
+const degToRad = (deg) => (deg * Math.PI) / 180;
+
+// Set up SVG element
+const gaugemargin = { top: 20, right: 20, bottom: 30, left: 20 };
+const gaugewidth = document.querySelector('.chart-gauge').offsetWidth - gaugemargin.left - gaugemargin.right;
+const gaugeheight = gaugewidth;
+const gaugeradius = Math.min(gaugewidth, gaugeheight) / 2;
+
+const gaugesvg = d3.select('.chart-gauge')
+  .append('svg')
+  .attr('width', gaugewidth + gaugemargin.left + gaugemargin.right)
+  .attr('height', gaugeheight + gaugemargin.top + gaugemargin.bottom);
+
+const chart = gaugesvg.append('g')
+  .attr('transform', `translate(${(gaugewidth + gaugemargin.left) / 2}, ${(gaugeheight + gaugemargin.top) / 2})`);
+
+// Define arc function
+const arc = d3.arc()
+  .outerRadius(gaugeradius - chartInset)
+  .innerRadius(gaugeradius - chartInset - barWidth);
+
+// Draw gauge background sections
+let totalPercent = 0.75; // Initialize totalPercent
+for (let sectionIndx = 1; sectionIndx <= numSections; sectionIndx++) {
+  const arcStartRad = percToRad(totalPercent);
+  const arcEndRad = arcStartRad + percToRad(sectionPerc);
+  totalPercent += sectionPerc;
+  const startPadRad = sectionIndx === 1 ? 0 : padRad / 2;
+  const endPadRad = sectionIndx === numSections ? 0 : padRad / 2;
+
+  chart.append('path')
+    .attr('class', `arc chart-color${sectionIndx}`)
+    .attr('d', arc.startAngle(arcStartRad + startPadRad).endAngle(arcEndRad - endPadRad)());
+}
+
+// Define Needle class
+class Needle {
+  constructor(len, radius) {
+    this.len = len;
+    this.radius = radius;
+  }
+
+  drawOn(el, perc) {
+    el.append('circle')
+      .attr('class', 'needle-center')
+      .attr('cx', 0)
+      .attr('cy', 0)
+      .attr('r', this.radius);
+
+    el.append('path')
+      .attr('class', 'needle')
+      .attr('d', this.mkCmd(perc));
+  }
+
+  animateOn(el, targetPerc) {
+    const self = this;
+    el.transition()
+      .delay(500)
+      .ease(d3.easeCubicInOut)
+      .duration(3000)
+      .selectAll('.needle')
+      .tween('progress', function() {
+        const node = this;
+        const initialPerc = parseFloat(d3.select(node).attr('data-perc')) || 0; // Get the initial percentage or default to 0
+        return function(percentOfPercent) {
+          const progress = initialPerc + (targetPerc - initialPerc) * percentOfPercent;
+          d3.select(node).attr('d', self.mkCmd(progress));
+        };
+      })
+      .attr('data-perc', targetPerc);
+  }
+
+  mkCmd(perc) {
+    const thetaRad = percToRad(perc / 2); // half circle
+    const centerX = 0;
+    const centerY = 0;
+    const topX = centerX - this.len * Math.cos(thetaRad);
+    const topY = centerY - this.len * Math.sin(thetaRad);
+    const leftX = centerX - this.radius * Math.cos(thetaRad - Math.PI / 2);
+    const leftY = centerY - this.radius * Math.sin(thetaRad - Math.PI / 2);
+    const rightX = centerX - this.radius * Math.cos(thetaRad + Math.PI / 2);
+    const rightY = centerY - this.radius * Math.sin(thetaRad + Math.PI / 2);
+
+    return `M ${leftX} ${leftY} L ${topX} ${topY} L ${rightX} ${rightY} Z`;
+  }
+}
+
+const needle = new Needle(90, 15);
+needle.drawOn(chart, 0);
+needle.animateOn(chart, percent);
