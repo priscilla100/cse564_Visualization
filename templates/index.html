@@ -180,6 +180,62 @@
         font-family: "sans-serif";
         color: "#ababab";
       }
+      table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: Arial, sans-serif;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+  background-color: #0a192f;
+  border: 1px solid #64ffda;
+  color: #8892b0;
+}
+
+th, td {
+  padding: 12px 15px;
+  text-align: left;
+}
+
+th {
+  background-color: #64ffda;
+  color: #0a192f;
+  font-weight: bold;
+}
+
+td {
+  border-bottom: 1px solid #64ffda;
+}
+
+tr:nth-child(even) {
+  background-color: #112240;
+}
+
+tr:hover {
+  background-color: #172a45;
+}
+
+td:first-child {
+  font-weight: bold;
+}
+
+td:last-child {
+  font-size: 24px;
+}
+
+table tr:first-child th:first-child {
+  border-top-left-radius: 5px;
+}
+
+table tr:first-child th:last-child {
+  border-top-right-radius: 5px;
+}
+
+table tr:last-child td:first-child {
+  border-bottom-left-radius: 5px;
+}
+
+table tr:last-child td:last-child {
+  border-bottom-right-radius: 5px;
+}
     </style>
   </head>
   <body>
@@ -202,7 +258,8 @@
           <div class="chart chart2">
             <div id="parallel-coordinates-plot"></div>
           </div>
-          <div class="chart chart3">chart 3</div>
+          <div class="chart chart3">          <div id="table-container"></div>
+        </div>
         </div>
       </div>
       <div class="row">

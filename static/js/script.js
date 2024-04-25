@@ -924,3 +924,36 @@ class Needle {
 const needle = new Needle(90, 15);
 needle.drawOn(chart, 0);
 needle.animateOn(chart, percent);
+
+
+// Create the table
+const table = d3.select('#table-container')
+  .append('table')
+  .style('border-collapse', 'collapse');
+
+// Create the table header
+const thead = table.append('thead');
+const headerRow = thead.append('tr');
+headerRow.append('th').text('Score Range');
+headerRow.append('th').text('Emoji');
+
+// Create the table body
+const tbody = table.append('tbody');
+
+// Add rows for each score range and emoji
+const rows = [
+  { range: '6 - 8', emoji: '🤩' },
+  { range: '4.5 - 6', emoji: '😑' },
+  { range: '1 - 4.5', emoji: '😡' }
+];
+
+const tableRows = tbody.selectAll('tr')
+  .data(rows)
+  .enter()
+  .append('tr');
+
+tableRows.append('td')
+  .text(d => d.range);
+
+tableRows.append('td')
+  .html(d => d.emoji);
