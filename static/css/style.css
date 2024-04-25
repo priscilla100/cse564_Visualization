@@ -4,7 +4,7 @@
 
 #map-legend {
   position: absolute;
-  top: 10px;
+  top: 50px;
   left: 10px;
   width: 150px;
   height: auto;
@@ -61,7 +61,7 @@
 }
 
 .chart1 {
-  flex: 8; /* Portion of 8 */
+  flex: 4; /* Portion of 8 */
 }
 
 .column {
@@ -201,4 +201,27 @@
   text-align: "center";
   font-family: "sans-serif";
   color: "#ababab";
+}
+.page-header {
+  text-align: center; /* Aligns the text to the center */
+  padding: 20px; /* Adds space around the text */
+  background-color: #f4f4f4; /* Sets a light background color for the header */
+  color: #333; /* Sets the text color */
+  border-bottom: 1px solid #ccc; /* Adds a subtle line to separate from the content */
+}
+
+.page-header h1 {
+  margin: 0;
+  padding: 0;
+  font-size: 2em; /* Sets a larger size for the title */
+  font-weight: bold; /* Makes the title bold */
+  color: #19747E; /* Sets a specific color for the title */
+}
+
+.page-header h2 {
+  margin-top: 10px; /* Adds space above the subtitle */
+  padding: 0;
+  font-size: 1em; /* Sets a smaller size for the subtitle */
+  font-weight: normal; /* Normal font weight for the subtitle */
+  color: #555; /* Slightly darker color for the subtitle */
 }
