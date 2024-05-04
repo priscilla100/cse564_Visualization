@@ -1,4 +1,46 @@
+.chart-container {
+  position: relative; /* Container for reference positioning */
+}
 
+#map-legend {
+  position: absolute;
+  top: 50px;
+  left: 10px;
+  width: 150px;
+  height: auto;
+  padding: 10px;
+  background-color: rgba(209, 232, 226, 0.7); /* #D1E8E2 with 70% opacity */
+  border: 1px solid #ddd;
+  z-index: 10;
+  overflow: hidden;
+  box-sizing: border-box;
+  border-radius: 5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  font-size: 0.9rem;
+}
+
+
+
+
+#map-legend h3 {
+  margin-top: 0;
+}
+
+#map-legend ul {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+
+#map-legend li {
+  display: flex;
+  align-items: center;
+  margin-bottom: 5px;
+}
+
+#map-legend li span:first-child {
+  margin-right: 10px;
+}
 .chart-container {
   display: flex;
   flex-direction: column;
@@ -12,14 +54,14 @@
 
 .chart {
   /* background-color: #f0f0f0; */
-  background-color: #0a192f;
+  background-color: #ffffff;
 
-  border: 1px solid #64ffda; /* Adjust the border as needed */
-  color: #8892b0; /* Optionally, set text color to white for better contrast */
+  border: 1px solid #7E909A; /* Adjust the border as needed */
+  color: #202020; /* Optionally, set text color to white for better contrast */
 }
 
-.chart1 {
-  flex: 8; /* Portion of 8 */
+.chart1 { /*Map*/
+  flex: 4; /* Portion of 8 */
 }
 
 .column {
@@ -28,9 +70,14 @@
   flex-direction: column;
 }
 
-.chart2,
+.chart2
+{
+  flex : 2;
+}/*PCP and Score Range*/
+
+
 .chart3 {
-  flex: 1; /* Equal portions for the two charts */
+  flex: 2; /* Equal portions for the two charts */
 }
 
 .chart4,
@@ -62,7 +109,7 @@
   vertical-align: middle;
   margin-left: 5px;
   font-size: 10px;
-  fill: #64ffda;
+  fill: #7E909A;
 }
 
 .region-legend {
@@ -91,7 +138,7 @@
 
 .axis text {
   font-size: 10px;
-  fill: white; /* Dark gray */
+  fill: black; /* Dark gray */
 }
 
 .dragging {
@@ -109,7 +156,7 @@
 
 .foreground path {
   fill: none;
-  stroke: #007bff; /* Blue */
+  stroke: #19747E; /* Blue */
   stroke-opacity: 0.7;
 }
 
@@ -122,7 +169,7 @@
 .axis line,
 .axis path {
   fill: none;
-  stroke: #64ffda; /* Aqua */
+  stroke: #EA6A47; /* Aqua */
   shape-rendering: crispEdges;
 }
 
@@ -152,11 +199,34 @@
 
 .needle,
 .needle-center {
-  fill: #8892b0;
+  fill: #202020;
 }
 
 .prose {
   text-align: "center";
   font-family: "sans-serif";
   color: "#ababab";
+}
+.page-header {
+  text-align: center; /* Aligns the text to the center */
+  padding: 20px; /* Adds space around the text */
+  background-color: #f4f4f4; /* Sets a light background color for the header */
+  color: #333; /* Sets the text color */
+  border-bottom: 1px solid #ccc; /* Adds a subtle line to separate from the content */
+}
+
+.page-header h1 {
+  margin: 0;
+  padding: 0;
+  font-size: 2em; /* Sets a larger size for the title */
+  font-weight: bold; /* Makes the title bold */
+  color: #19747E; /* Sets a specific color for the title */
+}
+
+.page-header h2 {
+  margin-top: 10px; /* Adds space above the subtitle */
+  padding: 0;
+  font-size: 1em; /* Sets a smaller size for the subtitle */
+  font-weight: normal; /* Normal font weight for the subtitle */
+  color: #555; /* Slightly darker color for the subtitle */
 }
