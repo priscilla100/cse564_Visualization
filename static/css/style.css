@@ -60,7 +60,7 @@
   color: #202020; /* Optionally, set text color to white for better contrast */
 }
 
-.chart1 {
+.chart1 { /*Map*/
   flex: 4; /* Portion of 8 */
 }
 
@@ -70,9 +70,14 @@
   flex-direction: column;
 }
 
-.chart2,
+.chart2
+{
+  flex : 2;
+}/*PCP and Score Range*/
+
+
 .chart3 {
-  flex: 1; /* Equal portions for the two charts */
+  flex: 2; /* Equal portions for the two charts */
 }
 
 .chart4,
