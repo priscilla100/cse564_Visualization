@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Project Dashboard</title>
+    <!-- <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    /> -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+
+    <link rel = "stylesheet" href="static/css/style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Reddit+Mono:wght@200..900&display=swap"
+      rel="stylesheet"
+    />
+    <!-- <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script> -->
+
+  </head>
+  <body>
+    <nav class="navbar">
+      <div class="container-fluid">
+          <h2 class="navbar-brand mb-0 h1">World Happiness Report Dashboard</h2>
+          <span>Interactive Data Visualizations from World Happiness Report Scores</span>
+      </div>
+  </nav>
+
+    <div class="chart-container">
+      <div class = "column">
+      <div class="row">
+        <div class="chart chart1" id="map-container">
+          <span id="selected-year">2024</span>
+          <input type="range" class="form-range" min="20"  max="2024" value="2024"  id="year-slider" />
+          <div id="map"></div>
+          <div id="map-legend">
+            <h3>Score Range Emoji</h3>
+            <ul>
+              <li>
+                <span>6 - 8</span>
+                <span>🤩</span>
+              </li>
+              <li>
+                <span>4.5 - 6</span>
+                <span>😑</span>
+              </li>
+              <li>
+                <span>1 - 4.5</span>
+                <span>😡</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div class="column">
+          <div class="chart chart2">
+            <div id="parallel-coordinates-plot"></div>
+          </div>
+        </div>
+        <div class="column">
+          <div class="chart chart3"><div id ="bar chart"></div>
+           
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="chart chart4" id="map-container">
+          <div id="legend-chart"></div>
+
+          <div id="bubble-chart"></div>
+        </div>
+        <div class="chart chart5"></div>
+        <div class="chart chart6">
+          <div id="chart-gauge" class="chart-gauge"></div>
+
+          <svg id="gauge" width="300" height="300"></svg> 
+        </div>
+      </div>
+    </div>
+
+
+   
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- <script src="https://d3js.org/d3.v7.min.js"></script> -->
+    <!-- Load d3.js -->
+    <script src="https://d3js.org/d3.v4.js"></script>
+
+    <!-- Load color scale -->
+    <script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+  </body>
+</html>
+
+
+<style>
+    .chart-container {
+  position: relative; /* Container for reference positioning */
+}
+
+#map-legend {
+  position: absolute;
+  top: 50px;
+  left: 10px;
+  width: 150px;
+  height: auto;
+  padding: 10px;
+  background-color: rgba(209, 232, 226, 0.7); /* #D1E8E2 with 70% opacity */
+  border: 1px solid #ddd;
+  z-index: 10;
+  overflow: hidden;
+  box-sizing: border-box;
+  border-radius: 5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  font-size: 0.9rem;
+}
+
+
+
+
+#map-legend h3 {
+  margin-top: 0;
+}
+
+#map-legend ul {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+
+#map-legend li {
+  display: flex;
+  align-items: center;
+  margin-bottom: 5px;
+}
+
+#map-legend li span:first-child {
+  margin-right: 10px;
+}
+.chart-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh; /* Adjust the height as needed */
+}
+
+.row {
+  display: flex;
+  flex: 1; /* Equal height for both rows */
+}
+
+.chart {
+  /* background-color: #f0f0f0; */
+  background-color: #ffffff;
+
+  border: 1px solid #7E909A; /* Adjust the border as needed */
+  color: #202020; /* Optionally, set text color to white for better contrast */
+}
+
+.chart1 { /*Map*/
+  flex: 4; /* Portion of 8 */
+}
+
+.column {
+  flex: 4; /* Portion of 4 */
+  display: flex;
+  flex-direction: column;
+}
+
+.chart2
+{
+  flex : 2;
+}/*PCP and Score Range*/
+
+
+.chart3 {
+  flex: 2; /* Equal portions for the two charts */
+}
+
+.chart4,
+.chart5,
+.chart6 {
+  flex: 1; /* Equal portions for the three charts */
+}
+/* #selected-year {
+  position: absolute;
+  top: 70px;
+  left: 0px;
+  transform: translateX(-50%);
+  margin-top: 10px;
+  margin-bottom: 20px;
+} */
+.legend-item {
+  display: inline-block;
+  margin-right: 10px;
+  cursor: pointer;
+}
+
+.legend-item rect {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.legend-item text {
+  display: inline-block;
+  vertical-align: middle;
+  margin-left: 5px;
+  font-size: 10px;
+  fill: #7E909A;
+}
+
+.region-legend {
+  font-size: 10px;
+  font-family: sans-serif;
+  display: flex;
+  align-items: center;
+  margin-bottom: 5px;
+}
+.region-legend-color {
+  width: 10px;
+  height: 10px;
+  margin-right: 5px;
+}
+
+.line {
+  fill: none;
+  stroke-width: 2;
+}
+
+.axis path {
+  fill: none;
+  stroke: #999; /* Light gray */
+  shape-rendering: crispEdges;
+}
+
+.axis text {
+  font-size: 10px;
+  fill: black; /* Dark gray */
+}
+
+.dragging {
+  fill: none;
+  pointer-events: all;
+  cursor: move;
+}
+
+.background path {
+  fill: none;
+  stroke: #e0e0e0; /* Lighter gray */
+  stroke-opacity: 0.4;
+  shape-rendering: crispEdges;
+}
+
+.foreground path {
+  fill: none;
+  stroke: #19747E; /* Blue */
+  stroke-opacity: 0.7;
+}
+
+.brush .extent {
+  fill-opacity: 0.3;
+  stroke: #fff;
+  shape-rendering: crispEdges;
+}
+
+.axis line,
+.axis path {
+  fill: none;
+  stroke: #EA6A47; /* Aqua */
+  shape-rendering: crispEdges;
+}
+
+.axis text {
+  text-shadow: none; /* Remove text shadow */
+  cursor: pointer; /* Change cursor to pointer */
+}
+
+.chart-gauge {
+  width: 400px;
+  margin: 10px auto;
+}
+.chart-color1 {
+  /* fill: #DEA82C */
+  fill: #e92213;
+}
+
+.chart-color2 {
+  /* fill: #E9621A} */
+  fill: #dea82c;
+}
+
+.chart-color3 {
+  /* fill: #e92213} */
+  fill: rgba(124, 190, 124, 0.919);
+}
+
+.needle,
+.needle-center {
+  fill: #202020;
+}
+
+.prose {
+  text-align: "center";
+  font-family: "sans-serif";
+  color: "#ababab";
+}
+.page-header {
+  text-align: center; /* Aligns the text to the center */
+  padding: 20px; /* Adds space around the text */
+  background-color: #f4f4f4; /* Sets a light background color for the header */
+  color: #333; /* Sets the text color */
+  border-bottom: 1px solid #ccc; /* Adds a subtle line to separate from the content */
+}
+
+.page-header h1 {
+  margin: 0;
+  padding: 0;
+  font-size: 2em; /* Sets a larger size for the title */
+  font-weight: bold; /* Makes the title bold */
+  color: #19747E; /* Sets a specific color for the title */
+}
+
+.page-header h2 {
+  margin-top: 10px; /* Adds space above the subtitle */
+  padding: 0;
+  font-size: 1em; /* Sets a smaller size for the subtitle */
+  font-weight: normal; /* Normal font weight for the subtitle */
+  color: #555; /* Slightly darker color for the subtitle */
+}
+
+</style>
+
+

@@ -1,182 +1,139 @@
-.chart-container {
-  position: relative; /* Container for reference positioning */
+body {
+  margin: 0;
+  padding: 0;
+  font-family: Arial, sans-serif;
+  overflow-x: hidden; /* Prevent horizontal scrolling */
 }
 
-#map-legend {
-  position: absolute;
-  top: 50px;
-  left: 10px;
-  width: 150px;
-  height: auto;
-  padding: 10px;
-  background-color: rgba(209, 232, 226, 0.7); /* #D1E8E2 with 70% opacity */
-  border: 1px solid #ddd;
-  z-index: 10;
-  overflow: hidden;
-  box-sizing: border-box;
-  border-radius: 5px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  font-size: 0.9rem;
-}
-
-
-
-
-#map-legend h3 {
-  margin-top: 0;
-}
-
-#map-legend ul {
-  list-style-type: none;
+.container {
   margin: 0;
   padding: 0;
 }
 
-#map-legend li {
-  display: flex;
-  align-items: center;
-  margin-bottom: 5px;
-}
-
-#map-legend li span:first-child {
-  margin-right: 10px;
-}
-.chart-container {
-  display: flex;
-  flex-direction: column;
-  height: 100vh; /* Adjust the height as needed */
-}
-
 .row {
+  margin: 0;
+  padding: 0;
+}
+
+.col {
+  margin: 0;
+  padding: 0;
+}
+
+.center {
   display: flex;
-  flex: 1; /* Equal height for both rows */
+  justify-content: center;
+  align-items: center;
+  height: 100%;
 }
 
-.chart {
-  /* background-color: #f0f0f0; */
-  background-color: #ffffff;
+.select-container {
+  margin: 0 auto; /* Center the container */
+  margin: 20px; /* Add some margin around the select containers */
 
-  border: 1px solid #7E909A; /* Adjust the border as needed */
-  color: #202020; /* Optionally, set text color to white for better contrast */
+  /* max-width: 300px;  */
 }
-
-.chart1 { /*Map*/
-  flex: 4; /* Portion of 8 */
+.navbar {
+  background-color: rgba(209, 232, 226, 0.7); /* #D1E8E2 with 70% opacity */
+  padding: 10px 0;
+  text-align: center;
 }
-
-.column {
-  flex: 4; /* Portion of 4 */
+.container-fluid {
   display: flex;
   flex-direction: column;
+  align-items: center;
+}
+.no-gutters {
+  margin-right: 0;
+  margin-left: 0;
+
+  > .col,
+  > [class*="col-"] {
+    padding-right: 0;
+    padding-left: 0;
+  }
+}
+.country {
+  fill: #d3d3d3;
+  stroke: #fff;
+  stroke-width: 0.5px;
 }
 
-.chart2
-{
-  flex : 2;
-}/*PCP and Score Range*/
-
-
-.chart3 {
-  flex: 2; /* Equal portions for the two charts */
+.marker {
+  font-size: 24px;
+  text-anchor: middle;
 }
 
-.chart4,
-.chart5,
-.chart6 {
-  flex: 1; /* Equal portions for the three charts */
-}
-/* #selected-year {
+.tooltip {
   position: absolute;
-  top: 70px;
-  left: 0px;
-  transform: translateX(-50%);
-  margin-top: 10px;
-  margin-bottom: 20px;
-} */
-.legend-item {
-  display: inline-block;
-  margin-right: 10px;
-  cursor: pointer;
+  background-color: rgba(0, 0, 0, 0.8);
+  color: #fff;
+  padding: 10px;
+  border-radius: 5px;
+  pointer-events: none;
 }
 
-.legend-item rect {
-  display: inline-block;
-  vertical-align: middle;
+#legend {
+  position: absolute;
+  top: 280px;
+  left: 10px;
+  background-color: rgba(215, 246, 234, 0.8);
+  padding: 10px;
+  border-radius: 5px;
 }
 
-.legend-item text {
-  display: inline-block;
-  vertical-align: middle;
-  margin-left: 5px;
-  font-size: 10px;
-  fill: #7E909A;
+#legend ul {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
 }
 
-.region-legend {
-  font-size: 10px;
-  font-family: sans-serif;
+#legend li {
   display: flex;
   align-items: center;
   margin-bottom: 5px;
 }
-.region-legend-color {
-  width: 10px;
-  height: 10px;
-  margin-right: 5px;
+
+#legend li span:first-child {
+  margin-right: 10px;
 }
 
-.line {
-  fill: none;
-  stroke-width: 2;
-}
-
-.axis path {
-  fill: none;
-  stroke: #999; /* Light gray */
-  shape-rendering: crispEdges;
-}
-
-.axis text {
-  font-size: 10px;
-  fill: black; /* Dark gray */
-}
-
-.dragging {
-  fill: none;
-  pointer-events: all;
-  cursor: move;
+svg {
+  font: 10px sans-serif;
 }
 
 .background path {
   fill: none;
-  stroke: #e0e0e0; /* Lighter gray */
-  stroke-opacity: 0.4;
+  stroke: #ddd;
+   stroke-opacity: .4;  
   shape-rendering: crispEdges;
 }
 
 .foreground path {
   fill: none;
-  stroke: #19747E; /* Blue */
-  stroke-opacity: 0.7;
+  stroke: steelblue;
+   stroke-opacity: .7;
 }
 
 .brush .extent {
-  fill-opacity: 0.3;
+  fill-opacity: .3;
   stroke: #fff;
+
   shape-rendering: crispEdges;
 }
 
 .axis line,
 .axis path {
   fill: none;
-  stroke: #EA6A47; /* Aqua */
+  stroke: #000;
   shape-rendering: crispEdges;
 }
 
 .axis text {
-  text-shadow: none; /* Remove text shadow */
-  cursor: pointer; /* Change cursor to pointer */
+  text-shadow: 0 1px 0 #fff, 1px 0 0 #fff, 0 -1px 0 #fff, -1px 0 0 #fff;
+  cursor: move;
 }
+
 
 .chart-gauge {
   width: 400px;
@@ -207,26 +164,29 @@
   font-family: "sans-serif";
   color: "#ababab";
 }
-.page-header {
-  text-align: center; /* Aligns the text to the center */
-  padding: 20px; /* Adds space around the text */
-  background-color: #f4f4f4; /* Sets a light background color for the header */
-  color: #333; /* Sets the text color */
-  border-bottom: 1px solid #ccc; /* Adds a subtle line to separate from the content */
+.legend-item {
+  display: inline-block;
+  margin-right: 10px;
+  cursor: pointer;
 }
 
-.page-header h1 {
-  margin: 0;
-  padding: 0;
-  font-size: 2em; /* Sets a larger size for the title */
-  font-weight: bold; /* Makes the title bold */
-  color: #19747E; /* Sets a specific color for the title */
+.legend-item rect {
+  display: inline-block;
+  vertical-align: middle;
 }
 
-.page-header h2 {
-  margin-top: 10px; /* Adds space above the subtitle */
-  padding: 0;
-  font-size: 1em; /* Sets a smaller size for the subtitle */
-  font-weight: normal; /* Normal font weight for the subtitle */
-  color: #555; /* Slightly darker color for the subtitle */
+.legend-item text {
+  display: inline-block;
+  vertical-align: middle;
+  margin-left: 5px;
+  font-size: 10px;
+  fill: #7E909A;
 }
+
+
+
+
+
+
+
+
