@@ -64,7 +64,7 @@ function initializeMap(countryData) {
   const path = d3.geoPath().projection(projection);
 
   // Set a single color for all countries
-  const color = "#19747E";
+  const color = "#67c3a5";
 
   // Draw the map with the single color
   const countries = svg
@@ -593,7 +593,22 @@ const bubbleY = d3.scaleLinear().range([bubbleHeight, 0]);
 
 const radius = d3.scaleSqrt().range([5, 20]);
 
-const color = d3.scaleOrdinal().range(d3.schemeCategory10);
+// const color = d3.scaleOrdinal().range(d3.schemeCategory10);
+
+  // Color palette
+  const color = d3.scaleOrdinal()
+  .domain(["Africa", "Asia", "Europe", "North America", "South America", "Australia", "Antarctica"])
+
+  .range([
+    "#e5c494", 
+    "#ffd92f", 
+    "#8da0cc",
+    "#a6d955", 
+    "#e88bc4", 
+    "#fc8d62"
+  ]);
+
+
 
 // Existing axis setup
 const xAxisGroup = bubbleSvg.append("g")
@@ -791,7 +806,17 @@ d3.json("/stacked_area_data", function (error, data) {
   ];
 
   // Color palette
-  var color = d3.scaleOrdinal().domain(keys).range(d3.schemeSet2);
+  const color = d3.scaleOrdinal()
+  .domain(["Africa", "Asia", "Europe", "North America", "Oceania", "South America"])
+
+  .range([
+    "#e5c494", 
+    "#ffd92f", 
+    "#8da0cc",
+    "#a6d955", 
+    "#e88bc4", 
+    "#fc8d62"
+  ]);
   console.log("Data",data.data[0])
   // var data = data.data
   // Stack the data
