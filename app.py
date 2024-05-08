@@ -28,6 +28,26 @@ def get_regions():
     regions = ['Select Region'] + sorted(df['Region'].unique())
     return {'regions': list(regions)}
 
+@app.route('/countries_by_region')
+def get_countries_by_region():
+    region_selected = request.args.get('region')
+
+    if region_selected:
+        filtered_df = df[df['Region'] == region_selected]
+    else:
+        filtered_df = df
+
+    # Convert the filtered DataFrame to a list of dictionaries
+    countries = filtered_df.to_dict(orient='records')
+
+    # Filter the list of dictionaries based on the 'Year' key
+    countries_filtered = [country for country in countries if country['Year'] == 2024]
+
+    # Return the filtered list of countries as JSON
+    return jsonify(countries_filtered)
+
+
+
 # Function to filter data based on year
 def filter_data_by_year(year):
     return df[df['Year'] == year]
