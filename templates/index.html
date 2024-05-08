@@ -39,7 +39,7 @@
                   </div>
                   <div class="col-auto">
 
-                  <select id="year" class="form-select"></select>
+                  <select id="year" class="form-select" onchange="updateBarChart(this.value)"></select>
               </div>
               </div>
           </div>
@@ -69,7 +69,12 @@
             <div id="bubble-chart"></div>
           </div>
           <div class="col-4">
-            <div id="my_dataviz"></div>
+            <div id="my_dataviz"></div> </div>
+            <div class="col-4">
+              <div id="bar-chart-container" class="bar-chart-container"></div>
+            </div>
+            <!--stacked line chart ->
+        
           </div>
           <div class="col-4">
             <div id="chart-gauge" class="chart-gauge"></div>
