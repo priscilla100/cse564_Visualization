@@ -40,7 +40,7 @@ let selectedRegion = "all";
 let selectedYear = "2024"; // Set the initial year to 2024
 let countryData = [];
 let mapData;
-
+let selectedContinent;
 // Load the map data
 d3.json(
   "https://unpkg.com/world-atlas@2.0.2/countries-50m.json",
@@ -172,6 +172,7 @@ document.getElementById("year").addEventListener("change", function () {
 
 let continentData; // Declare continentData outside of any function
 let continentPath; // Declare path for the continent path generator
+let projection;
 d3.json("/data", function (error, data) {
   if (error) throw error;
   countryData = data;
@@ -194,6 +195,9 @@ function updateRegion(selectedRegion, width, height, countryData, selectedContin
       .geoMercator()
       .scale(120)
       .translate([width / 2, height / 1.5]);
+
+  const svg = d3.select("#map").select("svg");
+
   // Update the map based on the selected region
   d3.selectAll(".country")
       .style("fill", function(d) {
@@ -202,7 +206,6 @@ function updateRegion(selectedRegion, width, height, countryData, selectedContin
 
   // Check if continentData and continentData.features are defined before filtering
   if (continentData && continentData.features) {
-    console.log("continentData.features",continentData.features)
       // Update the map to highlight the selected continent
       svg.selectAll(".continent")
           .data(continentData.features.filter(d => d.properties.continent === selectedContinent))
@@ -237,9 +240,9 @@ function updateRegion(selectedRegion, width, height, countryData, selectedContin
   })
   .on("mouseout", function () {
       tooltip.transition().duration(500).style("opacity", 0);
-
   });
 }
+
 
 function updateYear(selectedYear, width, height,countryData) {
   // Clear existing markers
