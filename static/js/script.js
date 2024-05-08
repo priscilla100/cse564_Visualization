@@ -64,7 +64,7 @@ function initializeMap(countryData) {
   const path = d3.geoPath().projection(projection);
 
   // Set a single color for all countries
-  const color = "#67c3a5";
+  const color = "#19747E";
 
   // Draw the map with the single color
   const countries = svg
@@ -145,82 +145,90 @@ function initializeMap(countryData) {
   // Event listeners for dropdown menus
 document.getElementById("country").addEventListener("change", function () {
   const selectedCountry = this.value;
-  updateCountry(selectedCountry, width, height, color);
+  updateCountry(selectedCountry, width, height);
 });
 
 document.getElementById("region").addEventListener("change", function () {
   const selectedRegion = this.value;
-  updateRegion(selectedRegion, width, height, color,countryData,selectedContinent);
+  updateRegion(selectedRegion, width, height,countryData,selectedContinent);
 });
 
 document.getElementById("year").addEventListener("change", function () {
   const selectedYear = this.value;
-  updateYear(selectedYear, width, height, color);
+  updateYear(selectedYear, width, height);
 });
 }
 
 let continentData; // Declare continentData outside of any function
-
-d3.json(
-  "https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json",
-  function (error, data) {
+let continentPath; // Declare path for the continent path generator
+d3.json("/data", function (error, data) {
+  if (error) throw error;
+  countryData = data;
+d3.json("https://cdn.jsdelivr.net/npm/world-atlas@2/land-110m.json", function (error, data) {
     if (error) throw error;
-    // Store the continent GeoJSON data in the globally accessible variable
-    continentData = data;
-  }
-);
 
-function updateRegion(selectedRegion, width, height, color, countryData, selectedContinent) {
+    continentData = data; // Assign the GeoJSON data directly to continentData
+    console.log("continentData",continentData)
+    continentPath = d3.geoPath().projection(projection); // Create a path generator for the continents
+});
+});
+
+
+function updateRegion(selectedRegion, width, height, countryData, selectedContinent) {
   // Clear existing markers
   d3.selectAll(".marker").remove();
 
   // Define projection
   var projection = d3
-    .geoMercator()
-    .scale(120)
-    .translate([width / 2, height / 1.5]);
+      .geoMercator()
+      .scale(120)
+      .translate([width / 2, height / 1.5]);
 
   const svg = d3.select("#map").select("svg");
 
   // Update the map based on the selected region
   d3.selectAll(".country")
-    .style("fill", function(d) {
-      return d.properties.region === selectedRegion ? color(selectedRegion) : "#ccc";
-    });
+      .style("fill", function(d) {
+          return d.properties.region === selectedRegion ? color(selectedRegion) : "#19747E";
+      });
+
+  // Check if continentData and continentData.features are defined before filtering
+  if (continentData && continentData.features) {
+    console.log("continentData.features",continentData.features)
+      // Update the map to highlight the selected continent
+      svg.selectAll(".continent")
+          .data(continentData.features.filter(d => d.properties.continent === selectedContinent))
+          .enter()
+          .append("path")
+          .attr("class", "continent")
+          .attr("d", continentPath)
+          .style("fill", "red")
+          .style("stroke", "black")
+          .style("stroke-width", "1px");
+  }
 
   // Add markers for countries in the selected region
   const markers = svg.selectAll(".marker")
-    .data(countryData.filter(d => d.Region === selectedRegion))
-    .enter()
-    .append("text")
-    .attr("class", "marker")
-    .attr("x", (d) => projection([d.Longitude, d.Latitude])[0])
-    .attr("y", (d) => projection([d.Longitude, d.Latitude])[1])
-    .style("font-size", "20px")
-    .text((d) => d.Emoji);
-
-  // Update the map to highlight the selected continent
-  d3.selectAll(".continent")
-    .style("fill", function(d) {
-      return d.properties.region === selectedContinent ? "red" : "#ccc";
-    });
+      .data(countryData.filter(d => d.Region === selectedRegion))
+      .enter()
+      .append("text")
+      .attr("class", "marker")
+      .attr("x", (d) => projection([d.Longitude, d.Latitude])[0])
+      .attr("y", (d) => projection([d.Longitude, d.Latitude])[1])
+      .style("font-size", "20px")
+      .text((d) => d.Emoji);
 
   // Add tooltips
   const tooltip = d3.select("body").append("div").attr("class", "tooltip").style("opacity", 0);
 
   markers.on("mouseover", function (d) {
-    tooltip.transition().duration(200).style("opacity", 1);
-    tooltip.html(
-      `<strong>${d.Country}</strong><br>
-       Happiness Rank: ${d["Happiness Rank"]}<br>
-       Ladder Score: ${d["Ladder score"]}<br>
-       Population: ${d.Population.toLocaleString()}`
-    )
-    .style("left", d3.event.pageX + 10 + "px")
-    .style("top", d3.event.pageY - 28 + "px");
+      tooltip.transition().duration(200).style("opacity", 1);
+      tooltip.html(`<strong>${d.Country}</strong><br> Happiness Rank: ${d["Happiness Rank"]}<br> Ladder Score: ${d["Ladder score"]}<br> Population: ${d.Population.toLocaleString()}`)
+          .style("left", d3.event.pageX + 10 + "px")
+          .style("top", d3.event.pageY - 28 + "px");
   })
   .on("mouseout", function () {
-    tooltip.transition().duration(500).style("opacity", 0);
+      tooltip.transition().duration(500).style("opacity", 0);
   });
 }
 
@@ -593,22 +601,7 @@ const bubbleY = d3.scaleLinear().range([bubbleHeight, 0]);
 
 const radius = d3.scaleSqrt().range([5, 20]);
 
-// const color = d3.scaleOrdinal().range(d3.schemeCategory10);
-
-  // Color palette
-  const color = d3.scaleOrdinal()
-  .domain(["Africa", "Asia", "Europe", "North America", "South America", "Australia", "Antarctica"])
-
-  .range([
-    "#e5c494", 
-    "#ffd92f", 
-    "#8da0cc",
-    "#a6d955", 
-    "#e88bc4", 
-    "#fc8d62"
-  ]);
-
-
+const color = d3.scaleOrdinal().range(d3.schemeCategory10);
 
 // Existing axis setup
 const xAxisGroup = bubbleSvg.append("g")
@@ -806,17 +799,7 @@ d3.json("/stacked_area_data", function (error, data) {
   ];
 
   // Color palette
-  const color = d3.scaleOrdinal()
-  .domain(["Africa", "Asia", "Europe", "North America", "Oceania", "South America"])
-
-  .range([
-    "#e5c494", 
-    "#ffd92f", 
-    "#8da0cc",
-    "#a6d955", 
-    "#e88bc4", 
-    "#fc8d62"
-  ]);
+  var color = d3.scaleOrdinal().domain(keys).range(d3.schemeSet2);
   console.log("Data",data.data[0])
   // var data = data.data
   // Stack the data
