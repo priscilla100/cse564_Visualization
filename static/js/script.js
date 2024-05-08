@@ -685,23 +685,53 @@ bubbleSvg.append("text")
 
 function updateCircles(selectedAttribute) {
     const circles = bubbleSvg.selectAll("circle").data(data);
+    const tooltip = d3.select("body")
+    .append("div")
+    .attr("class", "tooltip")
+    .style("opacity", 0);
   
   
+    circles.enter()
+        .append("circle")
+        .attr("cx", d => bubbleX(d[selectedAttribute]))
+        .attr("cy", d => bubbleY(d[yAttribute]))
+        .attr("r", 0) // Start with radius 0 for a nice transition
+        .style("fill", d => color(d.Region))
+        .attr("opacity", 0.7)
+    // Merge with the update selection
+    .merge(circles)
+        .transition()
+        .duration(500)
+        .attr("cx", d => bubbleX(d[selectedAttribute]))
+        .attr("cy", d => bubbleY(d[yAttribute]))
+        .attr("r", d => radius(d.Population) * 1.2);  // Update the radius
+
+    // Handle the exit selection
+    circles.exit()
+        .transition()
+        .duration(500)
+        .attr("r", 0)  // Animate radius to 0 upon exit
+        .remove();
+
+    // Add tooltip functionality to both new and updating circles
     circles
-      .enter()
-      .append("circle")
-      .attr("cx", (d) => bubbleX(d[selectedAttribute]))
-      .attr("cy", (d) => bubbleY(d[yAttribute]))
-      .attr("r", (d) => radius(d.Population) * 1.2) // Double the radius for larger bubbles
-      .attr("fill", (d) => color(d.Region))
-      .attr("opacity", 0.7) // Set transparency to 0.7 (adjust as needed)
-      .merge(circles)
-      .transition()
-      .duration(500)
-      .attr("cx", (d) => bubbleX(d[selectedAttribute]))
-      .attr("cy", (d) => bubbleY(d[yAttribute]));
-    circles.exit().remove();
-  }
+        .on("mouseover", function(d) {
+            tooltip.transition()
+                .duration(200)
+                .style("opacity", .9);
+            tooltip.html("<strong>Country:</strong> " + d.Country + "<br/>" +
+                         "<strong>Continent:</strong> " + d.Region + "<br/>" +
+                         "<strong>Economy:</strong> " + d.Economy.toFixed(2) + "<br/>" +
+                         "<strong>Ladder Score:</strong> " + d['Ladder score'].toFixed(2))
+                .style("left", (d3.event.pageX + 10) + "px")
+                .style("top", (d3.event.pageY - 28) + "px");
+        })
+        .on("mouseout", function(d) {
+            tooltip.transition()
+                .duration(500)
+                .style("opacity", 0);
+        });
+}
   
   function updateChart(selectedAttribute) {
     console.log("Selected Attribute:", selectedAttribute);
