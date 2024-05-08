@@ -608,6 +608,8 @@ const colorScale = d3
 
 // .range(['#e41a1c', '#377eb8', '#4daf4a', '#984ea3', '#ff7f00', '#ffff33', '#a65628', '#f781bf']);
 
+
+//Bubble chart code
 const initialXAttribute = "Economy";
 const yAttribute = "Ladder score";
 
@@ -631,9 +633,70 @@ const radius = d3.scaleSqrt().range([5, 20]);
 
 const color = d3.scaleOrdinal().range(d3.schemeCategory10);
 
-const xAxisGroup = bubbleSvg.append("g").attr("transform", `translate(0, ${bubbleHeight})`);
+// Existing axis setup
+const xAxisGroup = bubbleSvg.append("g")
+  .attr("transform", `translate(0, ${bubbleHeight})`)
+  .call(d3.axisBottom(bubbleX));
 
-const yAxisGroup = bubbleSvg.append("g");
+const yAxisGroup = bubbleSvg.append("g")
+  .call(d3.axisLeft(bubbleY));
+
+// Add X Axis Label with a placeholder or initial value
+// Assuming you have defined bubbleSvg and its dimensions already
+
+const xAxisLabel = bubbleSvg.append("text")
+    .attr("class", "x-axis-label")
+    .attr("transform", `translate(${bubbleWidth / 2}, ${bubbleHeight + bubbleMargin.bottom})`)
+    .style("text-anchor", "middle")
+    // .text("Initial Attribute Label"); // Set an initial label if needed
+
+// Add Y Axis Label
+bubbleSvg.append("text")
+  .attr("class", "axis-label")
+  .attr("transform", "rotate(-90)")
+  .attr("y",  -55 + bubbleMargin.left)
+  .attr("x", 0 - (bubbleHeight / 2))
+  .attr("dy", "-1.2em")
+  .style("text-anchor", "middle")
+  .text("Happiness Socre");  // Replace "Your Y-Axis Label" with the actual label
+
+function updateCircles(selectedAttribute) {
+    const circles = bubbleSvg.selectAll("circle").data(data);
+  
+  
+    circles
+      .enter()
+      .append("circle")
+      .attr("cx", (d) => bubbleX(d[selectedAttribute]))
+      .attr("cy", (d) => bubbleY(d[yAttribute]))
+      .attr("r", (d) => radius(d.Population) * 1.2) // Double the radius for larger bubbles
+      .attr("fill", (d) => color(d.Region))
+      .attr("opacity", 0.7) // Set transparency to 0.7 (adjust as needed)
+      .merge(circles)
+      .transition()
+      .duration(500)
+      .attr("cx", (d) => bubbleX(d[selectedAttribute]))
+      .attr("cy", (d) => bubbleY(d[yAttribute]));
+    circles.exit().remove();
+  }
+  
+  function updateChart(selectedAttribute) {
+    console.log("Selected Attribute:", selectedAttribute);
+  
+    if (!data) {
+      console.log("Data not available yet.");
+      return;
+    }
+  
+    updateScales(selectedAttribute);
+    updateAxes();
+    updateCircles(selectedAttribute);
+    xAxisLabel.text(selectedAttribute.replace(/_/g, " "));
+  }
+
+
+
+
 
 const legendmargin = { left: 20 };
 const legendElement = createLegend(keys, colorScale, legendmargin).node();
@@ -729,37 +792,7 @@ function updateAxes() {
     .style("fill", "#EA6A47"); // Change color of text labels
 }
 
-function updateCircles(selectedAttribute) {
-  const circles = bubbleSvg.selectAll("circle").data(data);
 
-  circles
-    .enter()
-    .append("circle")
-    .attr("cx", (d) => bubbleX(d[selectedAttribute]))
-    .attr("cy", (d) => bubbleY(d[yAttribute]))
-    .attr("r", (d) => radius(d.Population) * 1.2) // Double the radius for larger bubbles
-    .attr("fill", (d) => color(d.Region))
-    .attr("opacity", 0.7) // Set transparency to 0.7 (adjust as needed)
-    .merge(circles)
-    .transition()
-    .duration(500)
-    .attr("cx", (d) => bubbleX(d[selectedAttribute]))
-    .attr("cy", (d) => bubbleY(d[yAttribute]));
-  circles.exit().remove();
-}
-
-function updateChart(selectedAttribute) {
-  console.log("Selected Attribute:", selectedAttribute);
-
-  if (!data) {
-    console.log("Data not available yet.");
-    return;
-  }
-
-  updateScales(selectedAttribute);
-  updateAxes();
-  updateCircles(selectedAttribute);
-}
 fetch("/data")
   .then((response) => response.json())
   .then((fetchedData) => {
