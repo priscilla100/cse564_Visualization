@@ -26,7 +26,20 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   });
 });
+document.addEventListener("DOMContentLoaded", function () {
+  // Initialize with a default year
+  updateBarChart(2024);
+  
+  document.getElementById("year").addEventListener("change", function() {
+    updateBarChart(this.value);
+  });
+});
 
+let selectedCountry = "all";
+let selectedRegion = "all";
+let selectedYear = "2024"; // Set the initial year to 2024
+let countryData = [];
+let mapData;
 
 // Load the map data
 d3.json(
@@ -39,14 +52,12 @@ d3.json(
     d3.json("/data", function (error, data) {
       if (error) throw error;
       countryData = data;
-      initializeMap(countryData);
+      initializeMap();
     });
   }
 );
-var projection;
-let selectedContinent; // Define selectedContinent as a global variable
 
-function initializeMap(countryData) {
+function initializeMap() {
   const width = 800;
   const height = 300;
 
@@ -56,7 +67,7 @@ function initializeMap(countryData) {
     .attr("width", width)
     .attr("height", height);
 
-   projection = d3
+  const projection = d3
     .geoMercator()
     .scale(120)
     .translate([width / 2, height / 1.5]);
@@ -145,90 +156,82 @@ function initializeMap(countryData) {
   // Event listeners for dropdown menus
 document.getElementById("country").addEventListener("change", function () {
   const selectedCountry = this.value;
-  updateCountry(selectedCountry, width, height);
+  updateCountry(selectedCountry, width, height, color);
 });
 
 document.getElementById("region").addEventListener("change", function () {
   const selectedRegion = this.value;
-  updateRegion(selectedRegion, width, height,countryData,selectedContinent);
+  updateRegion(selectedRegion, width, height, color,countryData,selectedContinent);
 });
 
 document.getElementById("year").addEventListener("change", function () {
   const selectedYear = this.value;
-  updateYear(selectedYear, width, height);
+  updateYear(selectedYear, width, height, color);
 });
 }
 
 let continentData; // Declare continentData outside of any function
-let continentPath; // Declare path for the continent path generator
-d3.json("/data", function (error, data) {
-  if (error) throw error;
-  countryData = data;
-d3.json("https://cdn.jsdelivr.net/npm/world-atlas@2/land-110m.json", function (error, data) {
+
+d3.json(
+  "https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json",
+  function (error, data) {
     if (error) throw error;
+    // Store the continent GeoJSON data in the globally accessible variable
+    continentData = data;
+  }
+);
 
-    continentData = data; // Assign the GeoJSON data directly to continentData
-    console.log("continentData",continentData)
-    continentPath = d3.geoPath().projection(projection); // Create a path generator for the continents
-});
-});
-
-
-function updateRegion(selectedRegion, width, height, countryData, selectedContinent) {
+function updateRegion(selectedRegion, width, height, color, countryData, selectedContinent) {
   // Clear existing markers
   d3.selectAll(".marker").remove();
 
   // Define projection
   var projection = d3
-      .geoMercator()
-      .scale(120)
-      .translate([width / 2, height / 1.5]);
+    .geoMercator()
+    .scale(120)
+    .translate([width / 2, height / 1.5]);
 
   const svg = d3.select("#map").select("svg");
 
   // Update the map based on the selected region
   d3.selectAll(".country")
-      .style("fill", function(d) {
-          return d.properties.region === selectedRegion ? color(selectedRegion) : "#19747E";
-      });
-
-  // Check if continentData and continentData.features are defined before filtering
-  if (continentData && continentData.features) {
-    console.log("continentData.features",continentData.features)
-      // Update the map to highlight the selected continent
-      svg.selectAll(".continent")
-          .data(continentData.features.filter(d => d.properties.continent === selectedContinent))
-          .enter()
-          .append("path")
-          .attr("class", "continent")
-          .attr("d", continentPath)
-          .style("fill", "red")
-          .style("stroke", "black")
-          .style("stroke-width", "1px");
-  }
+    .style("fill", function(d) {
+      return d.properties.region === selectedRegion ? color(selectedRegion) : "#ccc";
+    });
 
   // Add markers for countries in the selected region
   const markers = svg.selectAll(".marker")
-      .data(countryData.filter(d => d.Region === selectedRegion))
-      .enter()
-      .append("text")
-      .attr("class", "marker")
-      .attr("x", (d) => projection([d.Longitude, d.Latitude])[0])
-      .attr("y", (d) => projection([d.Longitude, d.Latitude])[1])
-      .style("font-size", "20px")
-      .text((d) => d.Emoji);
+    .data(countryData.filter(d => d.Region === selectedRegion))
+    .enter()
+    .append("text")
+    .attr("class", "marker")
+    .attr("x", (d) => projection([d.Longitude, d.Latitude])[0])
+    .attr("y", (d) => projection([d.Longitude, d.Latitude])[1])
+    .style("font-size", "20px")
+    .text((d) => d.Emoji);
+
+  // Update the map to highlight the selected continent
+  d3.selectAll(".continent")
+    .style("fill", function(d) {
+      return d.properties.region === selectedContinent ? "red" : "#ccc";
+    });
 
   // Add tooltips
   const tooltip = d3.select("body").append("div").attr("class", "tooltip").style("opacity", 0);
 
   markers.on("mouseover", function (d) {
-      tooltip.transition().duration(200).style("opacity", 1);
-      tooltip.html(`<strong>${d.Country}</strong><br> Happiness Rank: ${d["Happiness Rank"]}<br> Ladder Score: ${d["Ladder score"]}<br> Population: ${d.Population.toLocaleString()}`)
-          .style("left", d3.event.pageX + 10 + "px")
-          .style("top", d3.event.pageY - 28 + "px");
+    tooltip.transition().duration(200).style("opacity", 1);
+    tooltip.html(
+      `<strong>${d.Country}</strong><br>
+       Happiness Rank: ${d["Happiness Rank"]}<br>
+       Ladder Score: ${d["Ladder score"]}<br>
+       Population: ${d.Population.toLocaleString()}`
+    )
+    .style("left", d3.event.pageX + 10 + "px")
+    .style("top", d3.event.pageY - 28 + "px");
   })
   .on("mouseout", function () {
-      tooltip.transition().duration(500).style("opacity", 0);
+    tooltip.transition().duration(500).style("opacity", 0);
   });
 }
 
@@ -435,8 +438,8 @@ function brush_parallel_chart() {
 
 
 // Define variables
-const percent = 0.5;
-const barWidth = 50;
+const percent = 0.65;
+const barWidth = 34;
 const numSections = 3;
 const sectionPerc = 1 / numSections / 2;
 const padRad = 0.05;
@@ -601,7 +604,22 @@ const bubbleY = d3.scaleLinear().range([bubbleHeight, 0]);
 
 const radius = d3.scaleSqrt().range([5, 20]);
 
-const color = d3.scaleOrdinal().range(d3.schemeCategory10);
+// const color = d3.scaleOrdinal().range(d3.schemeCategory10);
+
+  // Color palette
+  const color = d3.scaleOrdinal()
+  .domain(["Africa", "Asia", "Europe", "North America", "South America", "Australia", "Antarctica"])
+
+  .range([
+    "#e5c494", 
+    "#ffd92f", 
+    "#8da0cc",
+    "#a6d955", 
+    "#e88bc4", 
+    "#fc8d62"
+  ]);
+
+
 
 // Existing axis setup
 const xAxisGroup = bubbleSvg.append("g")
@@ -632,23 +650,53 @@ bubbleSvg.append("text")
 
 function updateCircles(selectedAttribute) {
     const circles = bubbleSvg.selectAll("circle").data(data);
+    const tooltip = d3.select("body")
+    .append("div")
+    .attr("class", "tooltip")
+    .style("opacity", 0);
   
   
+    circles.enter()
+        .append("circle")
+        .attr("cx", d => bubbleX(d[selectedAttribute]))
+        .attr("cy", d => bubbleY(d[yAttribute]))
+        .attr("r", 0) // Start with radius 0 for a nice transition
+        .style("fill", d => color(d.Region))
+        .attr("opacity", 0.7)
+    // Merge with the update selection
+    .merge(circles)
+        .transition()
+        .duration(500)
+        .attr("cx", d => bubbleX(d[selectedAttribute]))
+        .attr("cy", d => bubbleY(d[yAttribute]))
+        .attr("r", d => radius(d.Population) * 1.2);  // Update the radius
+
+    // Handle the exit selection
+    circles.exit()
+        .transition()
+        .duration(500)
+        .attr("r", 0)  // Animate radius to 0 upon exit
+        .remove();
+
+    // Add tooltip functionality to both new and updating circles
     circles
-      .enter()
-      .append("circle")
-      .attr("cx", (d) => bubbleX(d[selectedAttribute]))
-      .attr("cy", (d) => bubbleY(d[yAttribute]))
-      .attr("r", (d) => radius(d.Population) * 1.2) // Double the radius for larger bubbles
-      .attr("fill", (d) => color(d.Region))
-      .attr("opacity", 0.7) // Set transparency to 0.7 (adjust as needed)
-      .merge(circles)
-      .transition()
-      .duration(500)
-      .attr("cx", (d) => bubbleX(d[selectedAttribute]))
-      .attr("cy", (d) => bubbleY(d[yAttribute]));
-    circles.exit().remove();
-  }
+        .on("mouseover", function(d) {
+            tooltip.transition()
+                .duration(200)
+                .style("opacity", .9);
+            tooltip.html("<strong>Country:</strong> " + d.Country + "<br/>" +
+                         "<strong>Continent:</strong> " + d.Region + "<br/>" +
+                         "<strong>Economy:</strong> " + d.Economy.toFixed(2) + "<br/>" +
+                         "<strong>Ladder Score:</strong> " + d['Ladder score'].toFixed(2))
+                .style("left", (d3.event.pageX + 10) + "px")
+                .style("top", (d3.event.pageY - 28) + "px");
+        })
+        .on("mouseout", function(d) {
+            tooltip.transition()
+                .duration(500)
+                .style("opacity", 0);
+        });
+}
   
   function updateChart(selectedAttribute) {
     console.log("Selected Attribute:", selectedAttribute);
@@ -945,3 +993,76 @@ d3.json("/stacked_area_data", function (error, data) {
     .on("mouseover", highlight)
     .on("mouseleave", noHighlight);
 });
+// Load the data
+function updateBarChart(year) {
+  d3.json(`/bar_chart_data?year=${year}`, function(error, data) {
+    if (error) {
+      console.error('Error fetching the bar chart data:', error);
+      return; // Exit if there's an error
+    }
+    drawBarChart(data); // Draw chart with fetched data
+  });
+}
+
+
+function drawBarChart(data) {
+  var svg = d3.select("#bar-chart-container").select("svg");
+  if (svg.empty()) {
+    svg = d3.select("#bar-chart-container")
+      .append("svg")
+      .attr("width", 600)
+      .attr("height", 400);
+  } else {
+    svg.selectAll("*").remove(); // Clear previous
+  }
+
+  var margin = {top: 20, right: 20, bottom: 30, left: 60}, // Adjusted left margin for labels
+      width = +svg.attr("width") - margin.left - margin.right,
+      height = +svg.attr("height") - margin.top - margin.bottom;
+
+  var g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
+
+  var x = d3.scaleLinear().range([0, width]);
+  var y = d3.scaleBand().rangeRound([0, height]).padding(0.1);
+
+  // Filter and sort the data to get the top 10 countries by ladder score
+  var topCountries = data
+    .sort((a, b) => b['Ladder score'] - a['Ladder score']) // Sort descending by score
+    .slice(0, 15); // Get the top 10
+
+  // Color palette
+  const color = d3.scaleOrdinal()
+    .domain(["Africa", "Asia", "Europe", "North America", "South America", "Australia"])
+    .range([
+      "#e5c494", 
+      "#ffd92f", 
+      "#8da0cc",
+      "#a6d955", 
+      "#e88bc4", 
+      "#fc8d62"
+    ]);
+
+  // Set the domain for the axes
+  y.domain(topCountries.map(d => d.Country));
+  x.domain([0, d3.max(topCountries, d => d['Ladder score'])]);
+
+  // Bind data to bars
+  g.selectAll(".bar")
+    .data(topCountries)
+    .enter().append("rect")
+    .attr("class", "bar")
+    .attr("x", 0)
+    .attr("y", d => y(d.Country))
+    .attr("width", d => x(d['Ladder score'])) // Make sure this calculation is correct
+    .attr("height", y.bandwidth())
+    .attr("fill", d => color(d.Region)); // Set fill based on region
+
+  // Add the X axis
+  g.append("g")
+    .attr("transform", `translate(0,${height})`)
+    .call(d3.axisBottom(x));
+
+  // Add the Y axis
+  g.append("g")
+    .call(d3.axisLeft(y));
+}

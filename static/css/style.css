@@ -83,12 +83,15 @@ body {
 }
 
 #legend {
+  width: 70px;
+  height:90px;
   position: absolute;
-  top: 280px;
+  top: 190px;
   left: 10px;
   background-color: rgba(215, 246, 234, 0.8);
   padding: 10px;
   border-radius: 5px;
+  font-size: 8px;
 }
 
 #legend ul {
@@ -101,6 +104,7 @@ body {
   display: flex;
   align-items: center;
   margin-bottom: 5px;
+  text-size-adjust:1px ;
 }
 
 #legend li span:first-child {
@@ -145,8 +149,10 @@ svg {
 
 
 .chart-gauge {
-  width: 300px;
+  position: absolute;
+  width: 250px;
   margin: 10px auto;
+  top: 250px;
 }
 .chart-color1 {
   /* fill: #DEA82C */

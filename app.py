@@ -119,27 +119,6 @@ def get_stacked_area_data():
     
     return jsonify({"data": processed_data})
 
-# @app.route('/stacked_area_data')
-# def get_stacked_area_data():
-#     # Group data by year and region
-#     grouped_data = df.groupby(['Year', 'Region']).sum().reset_index()
-
-#     processed_data = []
-#     for region in ['Africa', 'Asia', 'Europe', 'North America', 'Oceania', 'South America']:
-#         region_data = grouped_data[grouped_data['Region'] == region]
-#         region_data = region_data.sort_values('Year')
-
-#         # Append data for each attribute
-#         for attr in ['Economy', 'Social support', 'Health', 'Freedom', 'Trust', 'Generosity', 'Dystopia Residual']:
-#             processed_data.append({
-#                 'region': region,
-#                 'year': region_data['Year'].tolist(),
-#                 'attribute': attr,
-#                 'value': region_data[attr].tolist()
-#             })
-
-#     return jsonify({"data": processed_data})
-
 
 if __name__ == '__main__':
     app.run(debug=True, port=8970)
@@ -221,3 +200,4 @@ if __name__ == '__main__':
 #     sampled_df = sampled_df.reset_index(drop=True)
 #     sampled_df
 #     return jsonify(sampled_df.to_dict(orient='records'))
+
