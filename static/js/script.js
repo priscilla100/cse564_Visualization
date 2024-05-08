@@ -27,6 +27,11 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 });
 
+let selectedCountry = "all";
+let selectedRegion = "all";
+let selectedYear = "2024"; // Set the initial year to 2024
+let countryData = [];
+let mapData;
 
 // Load the map data
 d3.json(
@@ -39,14 +44,12 @@ d3.json(
     d3.json("/data", function (error, data) {
       if (error) throw error;
       countryData = data;
-      initializeMap(countryData);
+      initializeMap();
     });
   }
 );
-var projection;
-let selectedContinent; // Define selectedContinent as a global variable
 
-function initializeMap(countryData) {
+function initializeMap() {
   const width = 800;
   const height = 300;
 
@@ -56,7 +59,7 @@ function initializeMap(countryData) {
     .attr("width", width)
     .attr("height", height);
 
-   projection = d3
+  const projection = d3
     .geoMercator()
     .scale(120)
     .translate([width / 2, height / 1.5]);
@@ -142,85 +145,120 @@ function initializeMap(countryData) {
   // Reset zoom transform when no zoom is applied
   svg.call(zoom.transform, d3.zoomIdentity);
 
-  // Event listeners for dropdown menus
-document.getElementById("country").addEventListener("change", function () {
-  const selectedCountry = this.value;
-  updateCountry(selectedCountry, width, height, color);
-});
+  // updateMap();
+  document.getElementById("country").addEventListener("change", function () {
+    const selectedCountry = this.value;
+    updateMap(selectedCountry, selectedRegion, selectedYear, width, height,color);
+  });
 
-document.getElementById("region").addEventListener("change", function () {
-  const selectedRegion = this.value;
-  updateRegion(selectedRegion, width, height, color,countryData,selectedContinent);
-});
+  document.getElementById("region").addEventListener("change", function () {
+    const selectedRegion = this.value;
+    updateMap(selectedCountry, selectedRegion, selectedYear, width, height,color);
+  });
 
-document.getElementById("year").addEventListener("change", function () {
-  const selectedYear = this.value;
-  updateYear(selectedYear, width, height, color);
-});
+  document.getElementById("year").addEventListener("change", function () {
+    const selectedYear = this.value;
+    updateMap(selectedCountry, selectedRegion, selectedYear, width, height,color);
+  });
 }
+// function updateMap(selectedCountry, selectedRegion, selectedYear, width, height, color) {
+//   console.log(selectedCountry)
+//   const svg = d3.select("#map").select("svg");
+//   const projection = d3.geoMercator().scale(120).translate([width / 2, height / 1.5]);
+//   const path = d3.geoPath().projection(projection);
 
-let continentData; // Declare continentData outside of any function
+//   // Access markers and other elements directly from the SVG
+//   const markers = svg.selectAll(".marker");
+//   const countries = svg.selectAll(".country");
 
-d3.json(
-  "https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json",
-  function (error, data) {
-    if (error) throw error;
-    // Store the continent GeoJSON data in the globally accessible variable
-    continentData = data;
-  }
-);
+//   return new Promise((resolve, reject) => {
+//     d3.json("/data", function (error, data) {
+//       if (error) {
+//         reject(error);
+//         return;
+//       }
 
-function updateRegion(selectedRegion, width, height, color, countryData, selectedContinent) {
-  // Clear existing markers
-  d3.selectAll(".marker").remove();
+//       countryData = data;
 
-  // Define projection
-  var projection = d3
-    .geoMercator()
-    .scale(120)
-    .translate([width / 2, height / 1.5]);
+//       // Filter data based on selections
+//       const filteredData = countryData.filter(
+//         (d) =>
+//           (!selectedCountry || d.Country === selectedCountry) &&
+//           (!selectedRegion || d.Region === selectedRegion) &&
+//           (!selectedYear || d[`Year${selectedYear}`]) // Assuming year data is stored with a key like 'Year2023'
+//       );
 
+//       // Clear existing markers
+//       markers.remove();
+
+//       // Draw the map with the filtered data
+//       countries
+//         .data(
+//           topojson
+//             .feature(mapData, mapData.objects.countries)
+//             .features.filter((d) =>
+//               filteredData.some((c) => c.Country === d.properties.name)
+//             )
+//         )
+//         .enter()
+//         .append("path")
+//         .attr("class", "country")
+//         .attr("d", path)
+//         .style("fill", color);
+
+//       // Add emoji markers for the filtered data
+//       markers
+//         .data(filteredData)
+//         .enter()
+//         .append("text")
+//         .attr("class", "marker")
+//         .attr("x", (d) => projection([d.Longitude, d.Latitude])[0])
+//         .attr("y", (d) => projection([d.Longitude, d.Latitude])[1])
+//         .style("font-size", "20px")
+//         .text((d) => d.Emoji);
+
+//       resolve(); // Data loaded and markers updated, resolve the promise
+//     });
+//   });
+// }
+function updateMap(selectedCountry, selectedRegion, selectedYear, width, height, color) {
   const svg = d3.select("#map").select("svg");
+  const projection = d3.geoMercator().scale(120).translate([width / 2, height / 1.5]);
+  const path = d3.geoPath().projection(projection);
 
-  // Update the map based on the selected region
-  d3.selectAll(".country")
-    .style("fill", function(d) {
-      return d.properties.region === selectedRegion ? color(selectedRegion) : "#ccc";
+  // Access markers and other elements directly from the SVG
+  const markers = svg.selectAll(".marker");
+
+  return new Promise((resolve, reject) => {
+    d3.json("/data", function (error, data) {
+      if (error) {
+        reject(error);
+        return;
+      }
+
+      countryData = data;
+
+      // Filter data based on selected country
+      const filteredData = countryData.filter(
+        (d) => d.Country === selectedCountry
+      );
+
+      // Clear existing markers
+      markers.remove();
+
+      // Add emoji markers for the selected country's data
+      markers
+        .data(filteredData)
+        .enter()
+        .append("text")
+        .attr("class", "marker")
+        .attr("x", (d) => projection([d.Longitude, d.Latitude])[0])
+        .attr("y", (d) => projection([d.Longitude, d.Latitude])[1])
+        .style("font-size", "20px")
+        .text((d) => d.Emoji);
+
+      resolve(); // Data loaded and markers updated, resolve the promise
     });
-
-  // Add markers for countries in the selected region
-  const markers = svg.selectAll(".marker")
-    .data(countryData.filter(d => d.Region === selectedRegion))
-    .enter()
-    .append("text")
-    .attr("class", "marker")
-    .attr("x", (d) => projection([d.Longitude, d.Latitude])[0])
-    .attr("y", (d) => projection([d.Longitude, d.Latitude])[1])
-    .style("font-size", "20px")
-    .text((d) => d.Emoji);
-
-  // Update the map to highlight the selected continent
-  d3.selectAll(".continent")
-    .style("fill", function(d) {
-      return d.properties.region === selectedContinent ? "red" : "#ccc";
-    });
-
-  // Add tooltips
-  const tooltip = d3.select("body").append("div").attr("class", "tooltip").style("opacity", 0);
-
-  markers.on("mouseover", function (d) {
-    tooltip.transition().duration(200).style("opacity", 1);
-    tooltip.html(
-      `<strong>${d.Country}</strong><br>
-       Happiness Rank: ${d["Happiness Rank"]}<br>
-       Ladder Score: ${d["Ladder score"]}<br>
-       Population: ${d.Population.toLocaleString()}`
-    )
-    .style("left", d3.event.pageX + 10 + "px")
-    .style("top", d3.event.pageY - 28 + "px");
-  })
-  .on("mouseout", function () {
-    tooltip.transition().duration(500).style("opacity", 0);
   });
 }
 
@@ -427,8 +465,8 @@ function brush_parallel_chart() {
 
 
 // Define variables
-const percent = 0.5;
-const barWidth = 50;
+const percent = 0.65;
+const barWidth = 34;
 const numSections = 3;
 const sectionPerc = 1 / numSections / 2;
 const padRad = 0.05;
