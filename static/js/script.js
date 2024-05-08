@@ -26,6 +26,14 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   });
 });
+document.addEventListener("DOMContentLoaded", function () {
+  // Initialize with a default year
+  updateBarChart(2024);
+  
+  document.getElementById("year").addEventListener("change", function() {
+    updateBarChart(this.value);
+  });
+});
 
 let selectedCountry = "all";
 let selectedRegion = "all";
@@ -635,7 +643,7 @@ const radius = d3.scaleSqrt().range([5, 20]);
 
   // Color palette
   const color = d3.scaleOrdinal()
-  .domain(["Africa", "Asia", "Europe", "North America", "South America", "Australia", "Antarctica"])
+  .domain(["Africa", "Asia", "Europe", "North America", "South America", "Australia"])
 
   .range([
     "#e5c494", 
@@ -1000,3 +1008,76 @@ d3.json("/stacked_area_data", function (error, data) {
     .on("mouseover", highlight)
     .on("mouseleave", noHighlight);
 });
+// Load the data
+function updateBarChart(year) {
+  d3.json(`/bar_chart_data?year=${year}`, function(error, data) {
+    if (error) {
+      console.error('Error fetching the bar chart data:', error);
+      return; // Exit if there's an error
+    }
+    drawBarChart(data); // Draw chart with fetched data
+  });
+}
+
+
+function drawBarChart(data) {
+  var svg = d3.select("#bar-chart-container").select("svg");
+  if (svg.empty()) {
+    svg = d3.select("#bar-chart-container")
+      .append("svg")
+      .attr("width", 600)
+      .attr("height", 400);
+  } else {
+    svg.selectAll("*").remove(); // Clear previous
+  }
+
+  var margin = {top: 20, right: 20, bottom: 30, left: 60}, // Adjusted left margin for labels
+      width = +svg.attr("width") - margin.left - margin.right,
+      height = +svg.attr("height") - margin.top - margin.bottom;
+
+  var g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
+
+  var x = d3.scaleLinear().range([0, width]);
+  var y = d3.scaleBand().rangeRound([0, height]).padding(0.1);
+
+  // Filter and sort the data to get the top 10 countries by ladder score
+  var topCountries = data
+    .sort((a, b) => b['Ladder score'] - a['Ladder score']) // Sort descending by score
+    .slice(0, 15); // Get the top 10
+
+  // Color palette
+  const color = d3.scaleOrdinal()
+    .domain(["Africa", "Asia", "Europe", "North America", "South America", "Australia"])
+    .range([
+      "#e5c494", 
+      "#ffd92f", 
+      "#8da0cc",
+      "#a6d955", 
+      "#e88bc4", 
+      "#fc8d62"
+    ]);
+
+  // Set the domain for the axes
+  y.domain(topCountries.map(d => d.Country));
+  x.domain([0, d3.max(topCountries, d => d['Ladder score'])]);
+
+  // Bind data to bars
+  g.selectAll(".bar")
+    .data(topCountries)
+    .enter().append("rect")
+    .attr("class", "bar")
+    .attr("x", 0)
+    .attr("y", d => y(d.Country))
+    .attr("width", d => x(d['Ladder score'])) // Make sure this calculation is correct
+    .attr("height", y.bandwidth())
+    .attr("fill", d => color(d.Region)); // Set fill based on region
+
+  // Add the X axis
+  g.append("g")
+    .attr("transform", `translate(0,${height})`)
+    .call(d3.axisBottom(x));
+
+  // Add the Y axis
+  g.append("g")
+    .call(d3.axisLeft(y));
+}
