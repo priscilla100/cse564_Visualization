@@ -6,7 +6,7 @@ app = Flask(__name__)
 
 # df = pd.read_csv('static/whr_data/imputed_dataset_with_coords.csv')
 
-df = pd.read_csv('static/whr_data/merged_data_with_population.csv')
+df = pd.read_csv('static/whr_data/df_merged.csv')
 df = df.dropna()
 @app.route('/')
 def index():
@@ -101,7 +101,7 @@ def get_stacked_area_data():
 
 
 if __name__ == '__main__':
-    app.run(debug=True, port=8370)
+    app.run(debug=True, port=8970)
 
 
 
