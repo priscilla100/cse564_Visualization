@@ -1312,7 +1312,7 @@ function drawBarChart(data) {
       return widthValue;
     })
     .attr("height", y.bandwidth())
-    .attr("fill", d => color(d.Region));
+    .attr("fill", d => regionColors[d.Region]); // Use regionColors object for fill
 
   // Add the X axis
   g.append("g")
@@ -1323,6 +1323,7 @@ function drawBarChart(data) {
   g.append("g")
     .call(d3.axisLeft(y));
 }
+
 
 // Ensure this function gets called initially and on each update
 updateBarChart();
