@@ -1073,21 +1073,21 @@ function updateAxes() {
   xAxisGroup
     .call(xAxis)
     .selectAll("path") // Select the axis line
-    .style("stroke", "#EA6A47"); // Change color of x axis line
+    // .style("stroke", "#EA6A47"); // Change color of x axis line
 
   xAxisGroup
     .selectAll("text") // Select all text elements of x axis
-    .style("fill", "#EA6A47"); // Change color of text labels
+    // .style("fill", "#EA6A47"); // Change color of text labels
 
   // Update y axis
   yAxisGroup
     .call(yAxis)
     .selectAll("path") // Select the axis line
-    .style("stroke", "#EA6A47"); // Change color of y axis line
+    // .style("stroke", "#EA6A47"); // Change color of y axis line
 
   yAxisGroup
     .selectAll("text") // Select all text elements of y axis
-    .style("fill", "#EA6A47"); // Change color of text labels
+    // .style("fill", "#EA6A47"); // Change color of text labels
 }
 
 
