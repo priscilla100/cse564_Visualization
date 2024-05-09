@@ -1284,7 +1284,7 @@ function drawBarChart(data) {
     svg.selectAll("*").remove(); // Clear previous drawings
   }
 
-  var margin = { top: 20, right: 20, bottom: 30, left: 60 },
+  var margin = { top: 20, right: 20, bottom: 30, left: 90 },
       width = +svg.attr("width") - margin.left - margin.right,
       height = +svg.attr("height") - margin.top - margin.bottom,
       g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
