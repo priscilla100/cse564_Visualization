@@ -1246,39 +1246,12 @@ function drawBarChart(data) {
     .call(d3.axisLeft(y));
 }
 
-// Ensure this function gets called initially and on each update
-updateBarChart();
-
-
-// Event listener for year change
-document.getElementById("year").addEventListener("change", function() {
-  selectedYear = this.value;
-  updateBarChart();
-});
-
-// Event listeners for attribute selection from the legend
-document.querySelectorAll('.legend-item').forEach(item => {
-  item.addEventListener('click', function() {
-    // Assuming the attribute name is the text of the legend item, without any symbols.
-    const attributeName = this.innerText.trim().replace(/✔/g, '').trim();
-    
-    // Set the globally selected attribute
-    selectedAttribute = attributeName;
-
-    // Update the bar chart with the newly selected attribute and the current year.
-    updateBarChart();
-  });
-});
-
-// Initial chart update
-updateBarChart();
-
 
 
 d3.json("/get_linedata", function(data) {
-  var margin = {top: 20, right: 20, bottom: 50, left: 20},
-      width = 520 - margin.left - margin.right,
-      height = 340 - margin.top - margin.bottom;
+  var margin = { top: 20, right: 20, bottom: 50, left: 50 },
+      width = 600 - margin.left - margin.right,
+      height = 400 - margin.top - margin.bottom;
 
   var svg = d3.select("#multiline-graph")
       .append("svg")
@@ -1295,54 +1268,108 @@ d3.json("/get_linedata", function(data) {
       .domain([0, d3.max(data, function(d) { return d["Ladder score"]; })])
       .range([height, 0]);
 
-  var color = d3.scaleOrdinal(d3.schemeCategory10);
+  var color = d3.scaleOrdinal()
+      .domain(["Africa", "Asia", "Europe", "North America", "South America", "Australia"])
+      .range([
+          "#e5c494",
+          "#ffd92f",
+          "#8da0cc",
+          "#a6d955",
+          "#e88bc4",
+          "#fc8d62"
+      ]);
 
   var line = d3.line()
       .x(function(d) { return x(d.Year); })
       .y(function(d) { return y(d["Ladder score"]); });
-
   var regions = Array.from(new Set(data.map(function(d) { return d.Region; })));
+  // Store color information for each region
+  var regionColors = {};
 
-  color.domain(regions);
+  // Initial drawing of the lines
+  updateLines(data);
 
-  var lines = svg.selectAll(".line")
-      .data(regions)
-      .enter().append("g")
-      .attr("class", "line");
+  // Add change event listener to the dropdown
+  d3.select("#region").on("change", function() {
+      var selectedRegion = this.value;
+      var filteredData = (selectedRegion === "All") ? data : data.filter(function(d) { return d.Region === selectedRegion; });
+      updateLines(filteredData);
+  });
+// Add change event listener to the country dropdown
+d3.select("#country").on("change", function() {
+  var selectedCountry = this.value;
+  
+  // Make a request to the Flask endpoint
+  d3.json("/get_lineregion?country=" + selectedCountry, function(error, response) {
+    if (error) {
+      console.error("Error fetching region for country:", selectedCountry, error);
+      return;
+    }
 
-  lines.append("path")
-      .attr("class", "line")
-      .attr("d", function(region) {
-          return line(data.filter(function(d) { return d.Region === region; }));
-      })
-      .style("stroke", function(region) { return color(region); })
-      .style("fill", "none")
-      .transition()
-      .duration(1000)
-      .attrTween("d", function(region) {
-          var previous = d3.select(this).attr("d");
-          var current = line(data.filter(function(d) { return d.Region === region; }));
-          return d3.interpolatePath(previous, current);
-      });
+    var selectedRegion = response.region;
+    if (selectedRegion) {
+      var filteredData = data.filter(d => d.Region === selectedRegion);
+      updateLines(filteredData);
+    } else {
+      console.log("Region not found for country:", selectedCountry);
+    }
+  });
+});
 
-  // Add markers (circles) at each data point
-  lines.selectAll(".point")
-      .data(function(region) { return data.filter(function(d) { return d.Region === region; }); })
-      .enter().append("circle")
-      .attr("cx", function(d) { return x(d.Year); })
-      .attr("cy", function(d) { return y(d["Ladder score"]); })
-      .attr("r", 4)
-      .style("fill", function(d) { return color(d.Region); })
-      .style("opacity", 0)
-      .transition()
-      .duration(1000)
-      .style("opacity", 1);
 
-  // Add tooltips
-  lines.selectAll(".point")
-      .data(function(region) { return data.filter(function(d) { return d.Region === region; }); })
-      .append("title")
-      .text(function(d) { return d.Region + " (" + d.Year + "): " + d["Ladder score"]; });
+
+
+
+  function updateLines(data) {
+      var regions = Array.from(new Set(data.map(function(d) { return d.Region; })));
+
+      svg.selectAll(".line").remove();
+
+      var lines = svg.selectAll(".line")
+          .data(regions)
+          .enter().append("g")
+          .attr("class", "line");
+
+      lines.append("path")
+          .attr("class", "line")
+          .attr("d", function(region) {
+              return line(data.filter(function(d) { return d.Region === region; }));
+          })
+          .style("stroke", function(region) {
+              // Use stored color information for each region
+              if (!regionColors[region]) {
+                  regionColors[region] = color(region);
+              }
+              return regionColors[region];
+          })
+          .style("fill", "none")
+          .transition()
+          .duration(1000)
+          .attrTween("d", function(region) {
+              var previous = d3.select(this).attr("d");
+              var current = line(data.filter(function(d) { return d.Region === region; }));
+              return d3.interpolateString(previous, current);
+          });
+
+      // Add markers (circles) at each data point
+      lines.selectAll(".point")
+          .data(function(region) { return data.filter(function(d) { return d.Region === region; }); })
+          .enter().append("circle")
+          .attr("cx", function(d) { return x(d.Year); })
+          .attr("cy", function(d) { return y(d["Ladder score"]); })
+          .attr("r", 4)
+          .style("fill", function(d) { return color(d.Region); })
+          .style("opacity", 0)
+          .transition()
+          .duration(1000)
+          .style("opacity", 1);
+
+      // Add tooltips
+      lines.selectAll(".point")
+          .data(function(region) { return data.filter(function(d) { return d.Region === region; }); })
+          .append("title")
+          .text(function(d) { return d.Region + " (" + d.Year + "): " + d["Ladder score"]; });
+  }
 
   // Add the X Axis
   svg.append("g")

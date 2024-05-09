@@ -145,6 +145,17 @@ def get_linedata():
     # Calculate the average Ladder score per Year for each Region
     avg_scores = df.groupby(['Region', 'Year'])['Ladder score'].mean().reset_index()
     return jsonify(avg_scores.to_dict(orient='records'))
+
+
+@app.route('/get_lineregion', methods=['GET'])
+def get_lineregion():
+    country = request.args.get('country')
+    entry = df[df['Country'] == country]
+    if not entry.empty:
+        region = entry['Region'].iloc[0]  # Get the region from the first entry (assuming there is only one)
+        return jsonify({"region": region})
+    else:
+        return jsonify({"error": "Region not found for country: {}".format(country)}), 404
 # @app.route('/stacked_area_data')
 # def get_stacked_area_data():
 #     # Group data by year and region and sum the relevant columns
