@@ -1,6 +1,3 @@
-
-
-
 document.addEventListener("DOMContentLoaded", function () {
   d3.json("/countries", function (data) {
     var countryDropdown = d3.select("#country");
@@ -38,22 +35,6 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 });
 
-// function updateCountryDropdown() {
-//   const regionSelect = document.getElementById('regionSelect');
-//   const selectedRegion = regionSelect.value;
-//   const countrySelect = document.getElementById('countrySelect');
-//   countrySelect.innerHTML = ''; // Clear existing options
-
-//   countriesByRegion[selectedRegion].forEach(country => {
-//     const option = document.createElement('option');
-//     option.text = country;
-//     option.value = country;
-//     countrySelect.add(option);
-//   });
-// }
-
-// // Initialize the country dropdown with the default region
-// updateCountryDropdown();
 
 let countryData = [];
 let mapData;
@@ -188,6 +169,8 @@ document.getElementById("country").addEventListener("change", function () {
 document.getElementById("region").addEventListener("change", function () {
   const selectedRegion = this.value;
   updateRegion(selectedRegion,countryData,projection, continentData);
+  updatePolylinewithRegions(selectedRegion)
+  console.log("updatePolylinewithRegions(selectedRegion)",updatePolylinewithRegions(selectedRegion))
 });
 
 document.getElementById("year").addEventListener("change", function () {
@@ -290,69 +273,6 @@ function updateRegion(selectedRegion, countryData, projection, continentData) {
       tooltip.transition().duration(500).style("opacity", 0);
     });
 }
-
-
-// function updateRegion(selectedRegion,countryData,projection, continentData) {
-//   // Clear existing markers
-//   svg.selectAll(".marker").remove();
-
-//   // Update the map based on the selected continent
-//   svg.selectAll(".country")
-//       .style("fill", function(d) {
-//           return d.properties.region === selectedRegion ? "red" : color;
-//       });
-
-//   // Add markers for countries in the selected continent
-//   const markers = svg.selectAll(".marker")
-//       .data(countryData.filter(d => d.Region === selectedRegion))
-//       .enter()
-//       .append("text")
-//       .attr("class", "marker")
-//       .attr("x", (d) => projection([d.Longitude, d.Latitude])[0])
-//       .attr("y", (d) => projection([d.Longitude, d.Latitude])[1])
-//       .style("font-size", "20px")
-//       .text((d) => d.Emoji);
-
-//   // Add tooltips
-//   const tooltip = d3.select("body")
-//       .append("div")
-//       .attr("class", "tooltip")
-//       .style("opacity", 0);
-
-//   markers.on("mouseover", function(d) {
-//           tooltip.transition().duration(200).style("opacity", 1);
-//           tooltip.html(
-//                   `<strong>${d.Country}</strong><br>
-//                   Happiness Rank: ${d["Happiness Rank"]}<br>
-//                   Ladder Score: ${d["Ladder score"]}<br>
-//                   Population: ${d.Population.toLocaleString()}`
-//               )
-//               .style("left", d3.event.pageX + 10 + "px")
-//               .style("top", d3.event.pageY - 28 + "px");
-//       })
-//       .on("mouseout", function() {
-//           tooltip.transition().duration(500).style("opacity", 0);
-//       });
-
-//   // Load the continent GeoJSON data
-//   d3.json("https://gist.githubusercontent.com/hrbrmstr/91ea5cc9474286c72838/raw/59421ff9b268ff0929b051ddafafbeb94a4c1910/continents.json", function(error, data) {
-//       if (error) throw error;
-
-//       // Filter the GeoJSON data to only include the selected continent
-//       const continentFeatures = data.features.filter(feature => feature.properties.CONTINENT === selectedContinent);
-
-//       // Bind the continent data to the SVG
-//       svg.selectAll(".continent")
-//           .data(continentFeatures)
-//           .enter().append("path")
-//           .attr("class", "continent")
-//           .attr("d", path)
-//           .style("fill", "lightgray") // Color the selected continent
-//           .style("stroke", "black") // Add a border
-//           .style("stroke-width", "0.5px");
-//   });
-// }
-
 
 function updateYear(selectedYear, width, height, countryData) {
   // Clear existing markers
@@ -511,9 +431,7 @@ d3.json("/pcp_data", function (error, data) {
         
   })
 
- 
  extents = dimensions.map(function(p) { return [0,0]; });
-
 
   // Add grey background lines for context.
   background = svg.append("g")
@@ -530,7 +448,6 @@ d3.json("/pcp_data", function (error, data) {
       .data(data)
     .enter().append("path")
       .attr("d", path);
-
 
 
   // Add a group element for each dimension.
@@ -611,6 +528,8 @@ d3.json("/pcp_data", function (error, data) {
       .attr("x", -8)
       .attr("width", 16); 
       
+      updatePolylinewithRegions(null,data);
+
     
 });  // closing
 
@@ -654,6 +573,69 @@ function brush_parallel_chart() {
         }) ? null : "none";
       }); 
 }    
+
+
+function updatePolylinewithRegions(selectedRegion, data) {
+  console.log("updatePolylinewithRegions selectedRegion", selectedRegion);
+
+  const color = d3.scaleOrdinal()
+    .domain(["Africa", "Asia", "Europe", "North America", "South America", "Oceania"])
+    .range([
+      "#e5c494",
+      "#ffd92f",
+      "#8da0cc",
+      "#a6d955",
+      "#e88bc4",
+      "#fc8d62"
+    ]);
+
+    foreground.selectAll("path")
+    .style("stroke", function(d) {
+      if (selectedRegion === null) {
+        return "black"; // Default color when no region is selected
+      } else if (d.Region === selectedRegion) {
+        return regionColors[selectedRegion]; // Use the color for the selected region
+      } else {
+        return "#ccc"; // Use a default color for other regions
+      }
+    });
+}
+
+// Function to handle brush events
+// function brush_parallel_chart() {
+//   var actives = [];
+//   svg.selectAll(".brush")
+//     .filter(function (d) {
+//       return d3.brushSelection(this);
+//     })
+//     .each(function (d) {
+//       actives.push({
+//         dimension: d,
+//         extent: d3.brushSelection(this)
+//       });
+//     });
+
+//   // Update the polylines based on the selected regions
+//   if (actives.length > 0) {
+//     var selectedCountries = data.filter(function (d) {
+//       return actives.every(function (active) {
+//         var dim = active.dimension;
+//         return active.extent[0] <= y[dim](d[dim]) && y[dim](d[dim]) <= active.extent[1];
+//       });
+//     });
+
+//     var selectedRegions = selectedCountries.map(function (d) {
+//       return d.region;
+//     });
+
+//     selectedRegions.forEach(function (region) {
+//       updatePolylinewithRegions(region);
+//     });
+//   }
+// }
+
+// Update the polylines with the initial data
+// updatePolylinewithRegions("Africa");
 
 
 // Define variables
