@@ -664,12 +664,12 @@ const percToRad = (perc) => degToRad(percToDeg(perc));
 const degToRad = (deg) => (deg * Math.PI) / 180;
 
 // Set up SVG element
-const gaugemargin = { top: 20, right: 20, bottom: 30, left: 20 };
+const gaugemargin = { top: 20, right: 20, bottom: 5, left: 20 };
 const gaugewidth =
   document.querySelector(".chart-gauge").offsetWidth -
   gaugemargin.left -
   gaugemargin.right;
-const gaugeheight = gaugewidth;
+const gaugeheight = gaugewidth - 50;
 const gaugeradius = Math.min(gaugewidth, gaugeheight) / 2;
 
 const gaugesvg = d3
@@ -764,7 +764,7 @@ class Needle {
   }
 }
 
-const needle = new Needle(90, 15);
+const needle = new Needle(50, 10);
 needle.drawOn(chart, 0);
 needle.animateOn(chart, percent);
 
@@ -860,7 +860,7 @@ bubbleSvg.append("text")
   .attr("x", 0 - (bubbleHeight / 2))
   .attr("dy", "-1.2em")
   .style("text-anchor", "middle")
-  .text("Happiness Socre");  // Replace "Your Y-Axis Label" with the actual label
+  .text("Happiness Score");  // Replace "Your Y-Axis Label" with the actual label
 
 function updateCircles(selectedAttribute) {
     const circles = bubbleSvg.selectAll("circle").data(data);
