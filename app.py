@@ -94,6 +94,7 @@ def get_stacked_area_data():
     processed_data = []
     for year, group in grouped_data:
         # Calculate the cumulative sum of each category
+        
         group['Economy_cumsum'] = group['Economy'].cumsum()
         group['Social_support_cumsum'] = group['Social support'].cumsum()
         group['Health_cumsum'] = group['Health'].cumsum()
@@ -125,6 +126,29 @@ def get_bar_chart_data():
     print("Requested year:", year)  # This will show in your Flask server console
     filtered_data = df[df['Year'] == year][['Country', 'Region', 'Ladder score']]
     return jsonify(filtered_data.to_dict(orient='records'))
+
+# @app.route('/stacked_area_data')
+# def get_stacked_area_data():
+#     # Group data by year and region and sum the relevant columns
+#     grouped_data = df.groupby(['Year', 'Region']).sum().reset_index()
+
+#     processed_data = []
+#     for index, group in grouped_data.iterrows():
+#         # Appending the summed data to processed_data with proper access to the group data
+#         processed_data.append({
+#             'Year': group['Year'],
+#             'Region': group['Region'],
+#             'Economy': group['Economy'],
+#             'Social_support': group['Social support'],
+#             'Health': group['Health'],
+#             'Freedom': group['Freedom'],
+#             'Trust': group['Trust'],
+#             'Generosity': group['Generosity'],
+#             'Dystopia_Residual': group['Dystopia Residual']
+#         })
+    
+#     return jsonify(processed_data)
+
 
 if __name__ == '__main__':
     app.run(debug=True, port=8970)

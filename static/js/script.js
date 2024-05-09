@@ -75,7 +75,7 @@ function initializeMap() {
   const path = d3.geoPath().projection(projection);
 
   // Set a single color for all countries
-  const color = "#19747E";
+  const color = "#67c3a5";
 
   // Draw the map with the single color
   const countries = svg
@@ -358,8 +358,6 @@ d3.json("/pcp_data", function (error, data) {
       .data(data)
     .enter().append("path")
       .attr("d", path);
-
-
 
   // Add a group element for each dimension.
 
@@ -652,21 +650,21 @@ const bubbleY = d3.scaleLinear().range([bubbleHeight, 0]);
 const radius = d3.scaleSqrt().range([5, 20]);
 
 
-const color = d3.scaleOrdinal().range(d3.schemeCategory10);
+// const color = d3.scaleOrdinal().range(d3.schemeCategory10);
 // const color = d3.scaleOrdinal().range(d3.schemeCategory10);
 
   // Color palette
-  // const color = d3.scaleOrdinal()
-  // .domain(["Africa", "Asia", "Europe", "North America", "South America", "Australia"])
+  const color = d3.scaleOrdinal()
+  .domain(["Africa", "Asia", "Europe", "North America", "South America", "Australia"])
 
-  // .range([
-  //   "#e5c494", 
-  //   "#ffd92f", 
-  //   "#8da0cc",
-  //   "#a6d955", 
-  //   "#e88bc4", 
-  //   "#fc8d62"
-  // ]);
+  .range([
+    "#e5c494", 
+    "#ffd92f", 
+    "#8da0cc",
+    "#a6d955", 
+    "#e88bc4", 
+    "#fc8d62"
+  ]);
 
 
 // Existing axis setup
@@ -862,10 +860,33 @@ function updateAxes() {
 fetch("/data")
   .then((response) => response.json())
   .then((fetchedData) => {
+    const averages = calculateAverages(fetchedData);
+    console.log(averages); 
     data = fetchedData;
     updateChart(initialXAttribute);
   })
   .catch((error) => console.error(error));
+
+  function calculateAverages(data) {
+    let regionScores = {};
+  
+    // Group data by Year and Region, and compute averages
+    data.forEach(item => {
+      let key = item.Year + '-' + item.Region;
+      if (!regionScores[key]) {
+        regionScores[key] = { total: 0, count: 0, year: item.Year, region: item.Region };
+      }
+      regionScores[key].total += item['Ladder score'];
+      regionScores[key].count++;
+    });
+  
+    // Transform the results into an array suitable for visualization
+    return Object.values(regionScores).map(entry => ({
+      year: entry.year,
+      region: entry.region,
+      averageScore: entry.total / entry.count
+    }));
+  }
 
 
   var stackedMargin = { top: 60, right: 230, bottom: 50, left: 50 },
