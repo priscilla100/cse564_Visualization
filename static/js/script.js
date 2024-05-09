@@ -705,8 +705,8 @@ const gaugeradius = Math.min(gaugewidth, gaugeheight) / 2;
 const gaugesvg = d3
   .select(".chart-gauge")
   .append("svg")
-  .attr("width", gaugewidth + gaugemargin.left + gaugemargin.right)
-  .attr("height", gaugeheight + gaugemargin.top + gaugemargin.bottom);
+  .attr("width", gaugewidth + gaugemargin.left + gaugemargin.right )
+  .attr("height", gaugeheight + gaugemargin.top + gaugemargin.bottom - 50);
 
 const chart = gaugesvg
   .append("g")
@@ -867,15 +867,15 @@ const colorScale = d3
 const initialXAttribute = "Economy";
 const yAttribute = "Ladder score";
 
-const bubbleMargin = { top: 20, right: 20, bottom: 30, left: 40 };
+const bubbleMargin = { top: 30, right: 20, bottom: 30, left: 40 };
 const bubbleWidth = 450 - bubbleMargin.left - bubbleMargin.right;
-const bubbleHeight = 250 - bubbleMargin.top - bubbleMargin.bottom;
+const bubbleHeight = 300 - bubbleMargin.top - bubbleMargin.bottom;
 
 const bubbleSvg = d3
   .select("#bubble-chart")
   .append("svg")
   .attr("width", bubbleWidth + bubbleMargin.left + bubbleMargin.right)
-  .attr("height", bubbleHeight + bubbleMargin.top + bubbleMargin.bottom)
+  .attr("height", bubbleHeight + bubbleMargin.top + bubbleMargin.bottom  )
   .append("g")
   .attr("transform", `translate(${bubbleMargin.left}, ${bubbleMargin.top})`);
 
@@ -1442,23 +1442,23 @@ d3.select("#country").on("change", function() {
   svg.append("g")
       .call(d3.axisLeft(y));
 
-  // Add legend
-  var legend = svg.selectAll(".legend")
-      .data(regions)
-      .enter().append("g")
-      .attr("class", "legend")
-      .attr("transform", function(d, i) { return "translate(0," + i * 20 + ")"; });
+  // // Add legend
+  // var legend = svg.selectAll(".legend")
+  //     .data(regions)
+  //     .enter().append("g")
+  //     .attr("class", "legend")
+  //     .attr("transform", function(d, i) { return "translate(0," + i * 20 + ")"; });
 
-  legend.append("rect")
-      .attr("x", width - 18)
-      .attr("width", 18)
-      .attr("height", 18)
-      .style("fill", function(region) { return color(region); });
+  // legend.append("rect")
+  //     .attr("x", width - 18)
+  //     .attr("width", 18)
+  //     .attr("height", 18)
+  //     .style("fill", function(region) { return color(region); });
 
-  legend.append("text")
-      .attr("x", width - 24)
-      .attr("y", 9)
-      .attr("dy", ".35em")
-      .style("text-anchor", "end")
-      .text(function(d) { return d; });
+  // legend.append("text")
+  //     .attr("x", width - 24)
+  //     .attr("y", 9)
+  //     .attr("dy", ".35em")
+  //     .style("text-anchor", "end")
+  //     .text(function(d) { return d; });
 });

@@ -60,8 +60,20 @@
       </div>
       
       <!-- Content Row -->
+      <div id="legend-color" style="display: inline-flex">
+       
+        <span style="display: inline-block; align-items: center; margin-right: 10px; padding: 5px 10px; border: 1px solid rgb(204, 204, 204); border-radius: 4px; background-color: #e5c494;"><text>Africa</text></span>
+         <span style="display: inline-block; align-items: center; margin-right: 10px; padding: 5px 10px; border: 1px solid rgb(204, 204, 204); border-radius: 4px; background-color: #ffd92f;"><text>Asia</text></span> 
+         <span style="display: inline-block; align-items: center; margin-right: 10px; padding: 5px 10px; border: 1px solid rgb(204, 204, 204); border-radius: 4px; background-color: #8da0cc;"><text>Europe</text></span> 
+         <span style="display: inline-block; align-items: center; margin-right: 10px; padding: 5px 10px; border: 1px solid rgb(204, 204, 204); border-radius: 4px; background-color: #a6d955;"><text>North America</text></span> 
+         <span style="display: inline-block; align-items: center; margin-right: 10px; padding: 5px 10px; border: 1px solid rgb(204, 204, 204); border-radius: 4px; background-color: #fc8d62;"><text>Oceania</text></span> 
+         <span style="display: inline-block; align-items: center; margin-right: 10px; padding: 5px 10px; border: 1px solid rgb(204, 204, 204); border-radius: 4px; background-color: #e88bc4;"><text>South America</text></span> 
 
-      <!-- Content Row -->
+
+
+       
+        </div><br>
+      
       <div class="row">
         <!-- Content Column -->
         <div class="col-lg-6 mb-1">
@@ -102,14 +114,16 @@
       
       <div class="row">
         <!-- Content Column 1 -->
+        <!--Legend goes here-->
+        <div id="legend-chart" style="margin-left: 200px;"></div>
         <div class="col-lg-4 ">
             <!-- Project Card Example -->
             <div class="card shadow ">
                 <div class="card-header py-2">
-                    <h6 class="m-0 font-weight-bold text-primary">Happiness Score vs Individual Metrics </h6>
+                    <h6 class="m-0 font-weight-bold text-primary">Happiness Score vs Individual Metrics & Population </h6>
                 </div>
     
-                <div id="legend-chart"></div>
+                
 
             <div id="bubble-chart"></div>
             </div>
@@ -122,7 +136,7 @@
             <div class="card shadow mb-1">
                 <div class="card-header py-2">
                     <h6 class="m-0 font-weight-bold text-primary">
-                        Top 15 Metrics per Country 
+                        Individual Metrics Ranked (Top 15)
                     </h6>
                 </div>
                 <div id="bar-chart-container" class="bar-chart-container"></div>

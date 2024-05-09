@@ -153,7 +153,7 @@ svg {
   width: 250px;
   margin-left: 25px auto;
   top:180px;
-  height:200px;
+  height:130px;
 
 
 }
@@ -192,6 +192,8 @@ svg {
   display: inline-block;
   vertical-align: middle;
 }
+
+
 
 .legend-item text {
   display: inline-block;
