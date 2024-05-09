@@ -71,7 +71,7 @@ function initializeMap(countryData) {
 
   const projection = d3
     .geoMercator()
-    .scale(120)
+    .scale(98)
     .translate([width / 2, height / 1.5]);
 
   const path = d3.geoPath().projection(projection);
@@ -165,6 +165,7 @@ function initializeMap(countryData) {
         updateCountry(selectedCountry, width, height, data);
         updateMarkers(selectedCountry, selectedYear, width, height, countryData);
         updatePolylineWithCountry(selectedCountry,data)
+        updateGauge(selectedCountry)
 
       })
       .catch(error => {
@@ -679,41 +680,6 @@ function updatePlot(selectedRegion) {
   });
 }
 
-// function brush_parallel_chart() {
-//   var actives = [];
-//   svg.selectAll(".brush")
-//     .filter(function (d) {
-//       return d3.brushSelection(this);
-//     })
-//     .each(function (d) {
-//       actives.push({
-//         dimension: d,
-//         extent: d3.brushSelection(this)
-//       });
-//     });
-
-//   // Update the polylines based on the selected regions
-//   if (actives.length > 0) {
-//     var selectedCountries = data.filter(function (d) {
-//       return actives.every(function (active) {
-//         var dim = active.dimension;
-//         return active.extent[0] <= y[dim](d[dim]) && y[dim](d[dim]) <= active.extent[1];
-//       });
-//     });
-
-//     var selectedRegions = selectedCountries.map(function (d) {
-//       return d.region;
-//     });
-
-//     selectedRegions.forEach(function (region) {
-//       updatePolylinewithRegions(region);
-//     });
-//   }
-// }
-
-// Update the polylines with the initial data
-// updatePolylinewithRegions("Africa");
-
 
 // Define variables
 const percent = 0.65;
@@ -798,21 +764,20 @@ class Needle {
   animateOn(el, targetPerc) {
     const self = this;
     el.transition()
-      .delay(500)
-      .ease(d3.easeCubicInOut)
-      .duration(3000)
-      .selectAll(".needle")
-      .tween("progress", function () {
-        const node = this;
-        const initialPerc = parseFloat(d3.select(node).attr("data-perc")) || 0; // Get the initial percentage or default to 0
-        return function (percentOfPercent) {
-          const progress =
-            initialPerc + (targetPerc - initialPerc) * percentOfPercent;
-          d3.select(node).attr("d", self.mkCmd(progress));
-        };
-      })
-      .attr("data-perc", targetPerc);
-  }
+        .delay(500)
+        .ease(d3.easeCubicInOut)
+        .duration(3000)
+        .selectAll(".needle")
+        .tween("progress", function () {
+            const node = this;
+            const initialPerc = parseFloat(d3.select(node).attr("data-perc")) || 0; // Get the initial percentage or default to 0
+            return function (percentOfPercent) {
+                const progress = initialPerc + (targetPerc - initialPerc) * percentOfPercent;
+                d3.select(node).attr("d", self.mkCmd(progress));
+            };
+        })
+        .attr("data-perc", targetPerc);
+}
 
   mkCmd(perc) {
     const thetaRad = percToRad(perc / 2); // half circle
@@ -832,6 +797,49 @@ class Needle {
 const needle = new Needle(50, 10);
 needle.drawOn(chart, 0);
 needle.animateOn(chart, percent);
+
+function updateGauge(selectedCountry) {
+  let targetPerc = 0; // Initialize the target percentage
+
+  // Retrieve the ladder score for the selected country
+  getLadderScore(selectedCountry)
+      .then(ladderScore => {
+          console.log("ladderScore", ladderScore);
+
+          // Determine the target percentage based on the ladder score
+          if (ladderScore >= 6 && ladderScore <= 8) {
+              targetPerc = 0.75; // Green arc
+          } else if (ladderScore >= 4.5 && ladderScore < 6) {
+              targetPerc = 0.5; // Yellow arc
+          } else if (ladderScore >= 1 && ladderScore < 4.5) {
+              targetPerc = 0.25; // Red arc
+          }
+
+          // Animate the needle to the target percentage
+          needle.animateOn(chart, targetPerc);
+      })
+      .catch(error => {
+          console.error('Error retrieving ladder score:', error);
+      });
+}
+
+
+function getLadderScore(selectedCountry) {
+  return fetch('/get_ladder_scores')
+      .then(response => {
+          if (!response.ok) {
+              throw new Error('Network response was not ok');
+          }
+          return response.json();
+      })
+      .then(data => {
+          return data[selectedCountry];
+      })
+      .catch(error => {
+          console.error('Error:', error);
+          throw error;
+      });
+}
 
 
 const keys = [
@@ -882,9 +890,6 @@ const bubbleY = d3.scaleLinear().range([bubbleHeight, 0]);
 
 const radius = d3.scaleSqrt().range([5, 20]);
 
-
-// const color = d3.scaleOrdinal().range(d3.schemeCategory10);
-// const color = d3.scaleOrdinal().range(d3.schemeCategory10);
 
   // Color palette
   const color = d3.scaleOrdinal()
