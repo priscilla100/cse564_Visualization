@@ -670,8 +670,8 @@ var quant_p = function(v){return (parseFloat(v) == v) || (v == "")};
 
 d3.json("/pcp_data", function (error, data) {
   if (error) throw error;
- 
-    dimensions = d3.keys(data[0]);
+    // Remove "Region" from the list of dimensions
+    dimensions = d3.keys(data[0]).filter(function(d) { return d !== "Region"; });
     origDimensions = dimensions.slice(0);
 
     x.domain(dimensions);
