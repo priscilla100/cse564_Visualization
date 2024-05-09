@@ -83,15 +83,15 @@ body {
 }
 
 #legend {
-  width: 90px;
-  height:90px;
+  width: 110px;
+  height:110px;
   position: absolute;
-  top: 100px;
+  top: 90px;
   left: 10px;
   background-color: rgba(215, 246, 234, 0.8);
   padding: 10px;
   border-radius: 5px;
-  font-size: 8px;
+  font-size: 12px;
 }
 
 #legend ul {
