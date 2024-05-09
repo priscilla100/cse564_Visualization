@@ -35,23 +35,9 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 });
 
-// function updateCountryDropdown() {
-//   const regionSelect = document.getElementById('regionSelect');
-//   const selectedRegion = regionSelect.value;
-//   const countrySelect = document.getElementById('countrySelect');
-//   countrySelect.innerHTML = ''; // Clear existing options
-
-//   countriesByRegion[selectedRegion].forEach(country => {
-//     const option = document.createElement('option');
-//     option.text = country;
-//     option.value = country;
-//     countrySelect.add(option);
-//   });
-// }
-
-// // Initialize the country dropdown with the default region
-// updateCountryDropdown();
-
+let selectedCountry = "all";
+let selectedRegion = "all";
+let selectedYear = "2024"; // Set the initial year to 2024
 let countryData = [];
 let mapData;
 let selectedContinent;
@@ -66,12 +52,12 @@ d3.json(
     d3.json("/data", function (error, data) {
       if (error) throw error;
       countryData = data;
-      initializeMap(countryData);
+      initializeMap();
     });
   }
 );
 
-function initializeMap(countryData) {
+function initializeMap() {
   const width = 800;
   const height = 300;
 
@@ -89,7 +75,7 @@ function initializeMap(countryData) {
   const path = d3.geoPath().projection(projection);
 
   // Set a single color for all countries
-  const color = "#19747E";
+  const color = "#67c3a5";
 
   // Draw the map with the single color
   const countries = svg
@@ -170,58 +156,38 @@ function initializeMap(countryData) {
   // Event listeners for dropdown menus
 document.getElementById("country").addEventListener("change", function () {
   const selectedCountry = this.value;
-  fetch(`/data?country=${selectedCountry}`)
-    .then(response => response.json())
-    .then(data => {
-      // Update the map with the filtered data
-      updateCountry(selectedCountry, width, height,data);
-
-    })
-    .catch(error => {
-      console.error('Error:', error);
-    });
+  updateCountry(selectedCountry, width, height);
 });
 
 document.getElementById("region").addEventListener("change", function () {
   const selectedRegion = this.value;
-  updateRegion(selectedRegion,countryData,projection, continentData);
+  updateRegion(selectedRegion, width, height,countryData,selectedContinent);
 });
 
 document.getElementById("year").addEventListener("change", function () {
   const selectedYear = this.value;
-  // Make a request to the Flask endpoint with the selected year
-  fetch(`/data?year=${selectedYear}`)
-    .then(response => response.json())
-    .then(data => {
-      // Update the map with the filtered data
-      updateYear(selectedYear, width, height,data);
-
-    })
-    .catch(error => {
-      console.error('Error:', error);
-    });
+  updateYear(selectedYear, width, height,countryData);
 });
-
 }
 
 let continentData; // Declare continentData outside of any function
 let continentPath; // Declare path for the continent path generator
-
-// Define projection
-var projection = d3.geoMercator()
-  .scale(120)
-  .translate([width / 2, height / 1.5]);
-
-// Fetch continent data from a GeoJSON file
-d3.json("https://gist.githubusercontent.com/hrbrmstr/91ea5cc9474286c72838/raw/59421ff9b268ff0929b051ddafafbeb94a4c1910/continents.json", function(error, data) {
+let projection;
+d3.json("/data", function (error, data) {
   if (error) throw error;
-  continentData = data; // Assign the fetched data to continentData
-  // Call updateRegion to draw continents initially without highlighting
-  updateRegion(null, countryData, projection, continentData);
+  countryData = data;
+d3.json("https://cdn.jsdelivr.net/npm/world-atlas@2/land-110m.json", function (error, data) {
+    if (error) throw error;
+
+    continentData = data; // Assign the GeoJSON data directly to continentData
+    console.log("continentData",continentData)
+    continentPath = d3.geoPath().projection(projection); // Create a path generator for the continents
+});
 });
 let selectedRegions = {}; // Object to store selected regions and their colors
 
-function updateRegion(selectedRegion, countryData, projection, continentData) {
+
+function updateRegion(selectedRegion, width, height, countryData, selectedContinent) {
   // Clear existing markers
   d3.selectAll(".marker").remove();
 
@@ -277,15 +243,15 @@ function updateRegion(selectedRegion, countryData, projection, continentData) {
   // Add tooltips
   const tooltip = d3.select("body").append("div").attr("class", "tooltip").style("opacity", 0);
 
-  markers.on("mouseover", function(d) {
+  markers.on("mouseover", function (d) {
       tooltip.transition().duration(200).style("opacity", 1);
       tooltip.html(`<strong>${d.Country}</strong><br> Happiness Rank: ${d["Happiness Rank"]}<br> Ladder Score: ${d["Ladder score"]}<br> Population: ${d.Population.toLocaleString()}`)
-        .style("left", d3.event.pageX + 10 + "px")
-        .style("top", d3.event.pageY - 28 + "px");
-    })
-    .on("mouseout", function() {
+          .style("left", d3.event.pageX + 10 + "px")
+          .style("top", d3.event.pageY - 28 + "px");
+  })
+  .on("mouseout", function () {
       tooltip.transition().duration(500).style("opacity", 0);
-    });
+  });
 }
 
 
@@ -355,101 +321,39 @@ function updateYear(selectedYear, width, height, countryData) {
   // Clear existing markers
   d3.selectAll(".marker").remove();
 
-  // Define projection
-  var projection = d3
-    .geoMercator()
-    .scale(120)
-    .translate([width / 2, height / 1.5]);
-
   const svg = d3.select("#map").select("svg");
-
-  // Update the map to show markers for countries in the selected year
-  const markers = svg
-    .selectAll(".marker")
-    .data(countryData.filter(d => +d.Year === +selectedYear)) // Convert to number for comparison
-    .enter()
-    .append("text")
-    .attr("class", "marker")
-    .attr("x", d => projection([d.Longitude, d.Latitude])[0])
-    .attr("y", d => projection([d.Longitude, d.Latitude])[1])
-    .style("font-size", "20px")
-    .text(d => d.Emoji);
-
-  // Add tooltips
-  const tooltip = d3
-    .select("body")
-    .append("div")
-    .attr("class", "tooltip")
-    .style("opacity", 0);
-
-  markers
-    .on("mouseover", function (d) {
-      tooltip.transition().duration(200).style("opacity", 1);
-      tooltip
-        .html(
-          `<strong>${d.Country}</strong><br> Happiness Rank: ${
-            d["Happiness Rank"]
-          }<br> Ladder Score: ${d["Ladder score"]}<br> Population: ${
-            d.Population.toLocaleString()
-          }`
-        )
-        .style("left", d3.event.pageX + 10 + "px")
-        .style("top", d3.event.pageY - 28 + "px");
-    })
-    .on("mouseout", function () {
-      tooltip.transition().duration(500).style("opacity", 0);
-    });
-}
-
-function updateCountry(selectedCountry, width, height, countryData) {
-  // Clear existing markers
-  d3.selectAll(".marker").remove();
 
   // Define projection
   var projection = d3
-    .geoMercator()
-    .scale(120)
-    .translate([width / 2, height / 1.5]);
+      .geoMercator()
+      .scale(120)
+      .translate([width / 2, height / 1.5]);
 
-  const svg = d3.select("#map").select("svg");
-
-  // Update the map to show markers for countries in the selected year
-  const markers = svg
-    .selectAll(".marker")
-    .data(countryData.filter(d => d.Country === selectedCountry)) // Convert to number for comparison
-    .enter()
-    .append("text")
-    .attr("class", "marker")
-    .attr("x", d => projection([d.Longitude, d.Latitude])[0])
-    .attr("y", d => projection([d.Longitude, d.Latitude])[1])
-    .style("font-size", "20px")
-    .text(d => d.Emoji);
+  // Add markers for countries in the selected year
+  const markers = svg.selectAll(".marker")
+      .data(countryData.filter(d => d.Year === selectedYear))
+      .enter()
+      .append("text")
+      .attr("class", "marker")
+      .attr("x", (d) => projection([d.Longitude, d.Latitude])[0])
+      .attr("y", (d) => projection([d.Longitude, d.Latitude])[1])
+      .style("font-size", "20px")
+      .text((d) => d.Emoji);
 
   // Add tooltips
-  const tooltip = d3
-    .select("body")
-    .append("div")
-    .attr("class", "tooltip")
-    .style("opacity", 0);
+  const tooltip = d3.select("body").append("div").attr("class", "tooltip").style("opacity", 0);
 
-  markers
-    .on("mouseover", function (d) {
+  markers.on("mouseover", function (d) {
       tooltip.transition().duration(200).style("opacity", 1);
-      tooltip
-        .html(
-          `<strong>${d.Country}</strong><br> Happiness Rank: ${
-            d["Happiness Rank"]
-          }<br> Ladder Score: ${d["Ladder score"]}<br> Population: ${
-            d.Population.toLocaleString()
-          }`
-        )
-        .style("left", d3.event.pageX + 10 + "px")
-        .style("top", d3.event.pageY - 28 + "px");
-    })
-    .on("mouseout", function () {
+      tooltip.html(`<strong>${d.Country}</strong><br> Happiness Rank: ${d["Happiness Rank"]}<br> Ladder Score: ${d["Ladder score"]}<br> Population: ${d.Population.toLocaleString()}`)
+          .style("left", d3.event.pageX + 10 + "px")
+          .style("top", d3.event.pageY - 28 + "px");
+  })
+  .on("mouseout", function () {
       tooltip.transition().duration(500).style("opacity", 0);
-    });
+  });
 }
+
 
 var pcpMargin = {top: 30, right: 10, bottom: 10, left: 80},
     width = 760 - pcpMargin.left - pcpMargin.right,
@@ -527,8 +431,6 @@ d3.json("/pcp_data", function (error, data) {
       .data(data)
     .enter().append("path")
       .attr("d", path);
-
-
 
   // Add a group element for each dimension.
 
@@ -1031,10 +933,33 @@ function updateAxes() {
 fetch("/data")
   .then((response) => response.json())
   .then((fetchedData) => {
+    const averages = calculateAverages(fetchedData);
+    console.log(averages); 
     data = fetchedData;
     updateChart(initialXAttribute);
   })
   .catch((error) => console.error(error));
+
+  function calculateAverages(data) {
+    let regionScores = {};
+  
+    // Group data by Year and Region, and compute averages
+    data.forEach(item => {
+      let key = item.Year + '-' + item.Region;
+      if (!regionScores[key]) {
+        regionScores[key] = { total: 0, count: 0, year: item.Year, region: item.Region };
+      }
+      regionScores[key].total += item['Ladder score'];
+      regionScores[key].count++;
+    });
+  
+    // Transform the results into an array suitable for visualization
+    return Object.values(regionScores).map(entry => ({
+      year: entry.year,
+      region: entry.region,
+      averageScore: entry.total / entry.count
+    }));
+  }
 
 
   var stackedMargin = { top: 60, right: 230, bottom: 50, left: 50 },
