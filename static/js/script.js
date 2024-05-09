@@ -933,9 +933,6 @@ function updateCircles(selectedAttribute) {
   }
 
 
-
-
-
 const legendmargin = { left: 20 };
 const legendElement = createLegend(keys, colorScale, legendmargin).node();
 document.getElementById("legend-chart").appendChild(legendElement);
@@ -982,6 +979,14 @@ function createLegend(keys, colorScale, bubbleMargin) {
 
       // Update the chart based on the selected item
       updateChart(selectedData);
+      const attribute = selectedData.replace("✔", "").trim(); // Adjust based on how your data is structured if needed
+
+      // Fetch the current year from your year dropdown or other state management
+      const currentYear = document.getElementById("year").value;
+    
+      // Update the bar chart with the selected attribute and the current year
+      updateBarChart(currentYear, attribute);
+
     });
 
   legendItem
@@ -1215,18 +1220,114 @@ d3.json("/stacked_area_data", function (error, data) {
 });
 
 // Load the data
-function updateBarChart(year) {
-  d3.json(`/bar_chart_data?year=${year}`, function(error, data) {
-    if (error) {
-      console.error('Error fetching the bar chart data:', error);
-      return; // Exit if there's an error
-    }
-    drawBarChart(data); // Draw chart with fetched data
-  });
+// function updateBarChart(year) {
+//   d3.json(`/bar_chart_data?year=${year}`, function(error, data) {
+//     if (error) {
+//       console.error('Error fetching the bar chart data:', error);
+//       return; // Exit if there's an error
+//     }
+//     drawBarChart(data); // Draw chart with fetched data
+//   });
+// }
+
+
+// function drawBarChart(data) {
+//   var svg = d3.select("#bar-chart-container").select("svg");
+//   if (svg.empty()) {
+//     svg = d3.select("#bar-chart-container")
+//       .append("svg")
+//       .attr("width", 600)
+//       .attr("height", 400);
+//   } else {
+//     svg.selectAll("*").remove(); // Clear previous
+//   }
+
+//   var margin = {top: 20, right: 20, bottom: 30, left: 60}, // Adjusted left margin for labels
+//       width = +svg.attr("width") - margin.left - margin.right,
+//       height = +svg.attr("height") - margin.top - margin.bottom;
+
+//   var g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
+
+//   var x = d3.scaleLinear().range([0, width]);
+//   var y = d3.scaleBand().rangeRound([0, height]).padding(0.1);
+
+//   // Filter and sort the data to get the top 10 countries by ladder score
+//   var topCountries = data
+//     .sort((a, b) => b['Ladder score'] - a['Ladder score']) // Sort descending by score
+//     .slice(0, 15); // Get the top 10
+
+//   // Color palette
+//   const color = d3.scaleOrdinal()
+//     .domain(["Africa", "Asia", "Europe", "North America", "South America", "Australia"])
+//     .range([
+//       "#e5c494", 
+//       "#ffd92f", 
+//       "#8da0cc",
+//       "#a6d955", 
+//       "#e88bc4", 
+//       "#fc8d62"
+//     ]);
+
+//   // Set the domain for the axes
+//   y.domain(topCountries.map(d => d.Country));
+//   x.domain([0, d3.max(topCountries, d => d['Ladder score'])]);
+
+//   // Bind data to bars
+//   g.selectAll(".bar")
+//     .data(topCountries)
+//     .enter().append("rect")
+//     .attr("class", "bar")
+//     .attr("x", 0)
+//     .attr("y", d => y(d.Country))
+//     .attr("width", d => x(d['Ladder score'])) // Make sure this calculation is correct
+//     .attr("height", y.bandwidth())
+//     .attr("fill", d => color(d.Region)); // Set fill based on region
+
+//   // Add the X axis
+//   g.append("g")
+//     .attr("transform", `translate(0,${height})`)
+//     .call(d3.axisBottom(x));
+
+//   // Add the Y axis
+//   g.append("g")
+//     .call(d3.axisLeft(y));
+// }
+
+// Initialize with default values
+let selectedYear = "2024"; // Default year
+let selectedAttribute = "Ladder score"; // Default attribute
+
+// On DOM Content Loaded or similar event setup
+document.addEventListener("DOMContentLoaded", function() {
+  updateBarChart(); // Call to draw the chart initially with default values
+});
+
+
+// Function to update the bar chart
+function updateBarChart() {
+  const url = `/bar_chart_data?year=${selectedYear}&attribute=${selectedAttribute}`;
+  console.log(`Fetching data from: ${url}`); // Debugging statement
+  fetch(url)
+    .then(response => response.json())
+    .then(data => {
+      if(data.length > 0) {
+        drawBarChart(data);
+      } else {
+        console.error('No data returned for this attribute:', selectedAttribute);
+      }
+    })
+    .catch(error => console.error('Failed to fetch bar chart data:', error));
 }
 
 
+// Function to draw the bar chart with given data and attribute
 function drawBarChart(data) {
+  console.log("Data received:", data); // Debugging statement to check the received data
+  if (!data || !data.length) {
+    console.error("No data available or data is empty");
+    return;
+  }
+
   var svg = d3.select("#bar-chart-container").select("svg");
   if (svg.empty()) {
     svg = d3.select("#bar-chart-container")
@@ -1234,49 +1335,38 @@ function drawBarChart(data) {
       .attr("width", 600)
       .attr("height", 400);
   } else {
-    svg.selectAll("*").remove(); // Clear previous
+    svg.selectAll("*").remove(); // Clear previous drawings
   }
 
-  var margin = {top: 20, right: 20, bottom: 30, left: 60}, // Adjusted left margin for labels
+  var margin = { top: 20, right: 20, bottom: 30, left: 60 },
       width = +svg.attr("width") - margin.left - margin.right,
-      height = +svg.attr("height") - margin.top - margin.bottom;
+      height = +svg.attr("height") - margin.top - margin.bottom,
+      g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
 
-  var g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
+  // Filter data to include only top 15 entries sorted by the selected attribute
+  data = data.sort((a, b) => b[selectedAttribute] - a[selectedAttribute]).slice(0, 15);
 
   var x = d3.scaleLinear().range([0, width]);
   var y = d3.scaleBand().rangeRound([0, height]).padding(0.1);
 
-  // Filter and sort the data to get the top 10 countries by ladder score
-  var topCountries = data
-    .sort((a, b) => b['Ladder score'] - a['Ladder score']) // Sort descending by score
-    .slice(0, 15); // Get the top 10
+  // Set domains
+  y.domain(data.map(d => d.Country));
+  x.domain([0, d3.max(data, d => +d[selectedAttribute])]); // Ensure attribute is converted to number
 
-  // Color palette
-  const color = d3.scaleOrdinal()
-    .domain(["Africa", "Asia", "Europe", "North America", "South America", "Australia"])
-    .range([
-      "#e5c494", 
-      "#ffd92f", 
-      "#8da0cc",
-      "#a6d955", 
-      "#e88bc4", 
-      "#fc8d62"
-    ]);
-
-  // Set the domain for the axes
-  y.domain(topCountries.map(d => d.Country));
-  x.domain([0, d3.max(topCountries, d => d['Ladder score'])]);
-
-  // Bind data to bars
+  // Create bars
   g.selectAll(".bar")
-    .data(topCountries)
+    .data(data)
     .enter().append("rect")
     .attr("class", "bar")
     .attr("x", 0)
     .attr("y", d => y(d.Country))
-    .attr("width", d => x(d['Ladder score'])) // Make sure this calculation is correct
+    .attr("width", d => {
+      const widthValue = x(+d[selectedAttribute]); // Debugging problematic widths
+      console.log(`Width for ${d.Country}: ${widthValue}`);
+      return widthValue;
+    })
     .attr("height", y.bandwidth())
-    .attr("fill", d => color(d.Region)); // Set fill based on region
+    .attr("fill", d => color(d.Region));
 
   // Add the X axis
   g.append("g")
@@ -1287,4 +1377,31 @@ function drawBarChart(data) {
   g.append("g")
     .call(d3.axisLeft(y));
 }
+
+// Ensure this function gets called initially and on each update
+updateBarChart();
+
+
+// Event listener for year change
+document.getElementById("year").addEventListener("change", function() {
+  selectedYear = this.value;
+  updateBarChart();
+});
+
+// Event listeners for attribute selection from the legend
+document.querySelectorAll('.legend-item').forEach(item => {
+  item.addEventListener('click', function() {
+    // Assuming the attribute name is the text of the legend item, without any symbols.
+    const attributeName = this.innerText.trim().replace(/✔/g, '').trim();
+    
+    // Set the globally selected attribute
+    selectedAttribute = attributeName;
+
+    // Update the bar chart with the newly selected attribute and the current year.
+    updateBarChart();
+  });
+});
+
+// Initial chart update
+updateBarChart();
 
