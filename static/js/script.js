@@ -40,6 +40,9 @@ let countryData = [];
 let mapData;
 let selectedContinent;
 let selectedRegion;
+let selectedCountry = null;
+let selectedMapYear = null;
+
 // Load the map data
 d3.json(
   "https://unpkg.com/world-atlas@2.0.2/countries-50m.json",
@@ -153,20 +156,19 @@ function initializeMap(countryData) {
   svg.call(zoom.transform, d3.zoomIdentity);
 
   // Event listeners for dropdown menus
-document.getElementById("country").addEventListener("change", function () {
-  const selectedCountry = this.value;
-  fetch(`/data?country=${selectedCountry}`)
-    .then(response => response.json())
-    .then(data => {
-      // Update the map with the filtered data
-      updateCountry(selectedCountry, width, height,data);
-
-    })
-    .catch(error => {
-      console.error('Error:', error);
-    });
-});
-var selectedRegion;
+  document.getElementById("country").addEventListener("change", function () {
+    selectedCountry = this.value;
+    fetch(`/data?country=${selectedCountry}`)
+      .then(response => response.json())
+      .then(data => {
+        // Update the map with the filtered data
+        updateCountry(selectedCountry, width, height, data);
+        updateMarkers(selectedCountry, selectedYear, width, height, countryData);
+      })
+      .catch(error => {
+        console.error('Error:', error);
+      });
+  });
 document.getElementById("region").addEventListener("change", function () {
   const selectedRegion = this.value;
   updateRegion(selectedRegion,countryData,projection, continentData);
@@ -174,14 +176,14 @@ document.getElementById("region").addEventListener("change", function () {
 });
 
 document.getElementById("year").addEventListener("change", function () {
-  const selectedYear = this.value;
+  selectedMapYear = this.value;
   // Make a request to the Flask endpoint with the selected year
-  fetch(`/data?year=${selectedYear}`)
+  fetch(`/data?year=${selectedMapYear}`)
     .then(response => response.json())
     .then(data => {
       // Update the map with the filtered data
-      updateYear(selectedYear, width, height,data);
-
+      updateYear(selectedMapYear, width, height, data);
+      updateMarkers(selectedCountry, selectedMapYear, width, height, countryData);
     })
     .catch(error => {
       console.error('Error:', error);
@@ -371,6 +373,68 @@ function updateCountry(selectedCountry, width, height, countryData) {
       tooltip.transition().duration(500).style("opacity", 0);
     });
 }
+
+function updateMarkers(selectedCountry, selectedYear, width, height, countryData) {
+  // Define projection
+  var projection = d3
+    .geoMercator()
+    .scale(120)
+    .translate([width / 2, height / 1.5]);
+
+  const svg = d3.select("#map").select("svg");
+
+  // Update the map to show markers for countries in the selected year
+  svg.selectAll(".marker")
+    .text(d => {
+      if (selectedCountry && selectedYear) {
+        if (d.Country === selectedCountry && +d.Year === +selectedYear) {
+          return d.Emoji;
+        } else {
+          return "";
+        }
+      } else if (selectedCountry) {
+        if (d.Country === selectedCountry) {
+          return d.Emoji;
+        } else {
+          return "";
+        }
+      } else if (selectedYear) {
+        if (+d.Year === +selectedYear) {
+          return d.Emoji;
+        } else {
+          return "";
+        }
+      } else {
+        return "";
+      }
+    });
+
+  // Add tooltips
+  const tooltip = d3
+    .select("body")
+    .append("div")
+    .attr("class", "tooltip")
+    .style("opacity", 0);
+
+  svg.selectAll(".marker")
+    .on("mouseover", function (d) {
+      tooltip.transition().duration(200).style("opacity", 1);
+      tooltip
+        .html(
+          `<strong>${d.Country}</strong><br> Happiness Rank: ${
+            d["Happiness Rank"]
+          }<br> Ladder Score: ${d["Ladder score"]}<br> Population: ${
+            d.Population.toLocaleString()
+          }`
+        )
+        .style("left", d3.event.pageX + 10 + "px")
+        .style("top", d3.event.pageY - 28 + "px");
+    })
+    .on("mouseout", function () {
+      tooltip.transition().duration(500).style("opacity", 0);
+    });
+}
+
 
 var pcpMargin = {top: 30, right: 10, bottom: 10, left: 80},
     width = 760 - pcpMargin.left - pcpMargin.right,
