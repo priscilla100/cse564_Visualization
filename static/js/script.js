@@ -166,6 +166,7 @@ function initializeMap(countryData) {
         updateMarkers(selectedCountry, selectedYear, width, height, countryData);
         updatePolylineWithCountry(selectedCountry,data)
         updateGauge(selectedCountry)
+        updateBubbleByCountry(selectedCountry,data)
 
       })
       .catch(error => {
@@ -176,6 +177,7 @@ document.getElementById("region").addEventListener("change", function () {
   const selectedRegion = this.value;
   updateRegion(selectedRegion,countryData,projection, continentData);
   updatePolylinewithRegions(selectedRegion,data)
+  updateBubbleByRegion(selectedRegion,data)
 });
 
 document.getElementById("year").addEventListener("change", function () {
@@ -187,6 +189,7 @@ document.getElementById("year").addEventListener("change", function () {
       // Update the map with the filtered data
       updateYear(selectedMapYear, width, height, data);
       updateMarkers(selectedCountry, selectedMapYear, width, height, countryData);
+      updateBubbleByYear(selectedMapYear, data)
     })
     .catch(error => {
       console.error('Error:', error);
@@ -208,7 +211,6 @@ d3.json("https://gist.githubusercontent.com/hrbrmstr/91ea5cc9474286c72838/raw/59
   // Call updateRegion to draw continents initially without highlighting
   updateRegion(null, countryData, projection, continentData);
 });
-let selectedRegions = {}; // Object to store selected regions and their colors
 
 function updateRegion(selectedRegion, countryData, projection, continentData) {
   // Clear existing markers
@@ -227,13 +229,11 @@ function updateRegion(selectedRegion, countryData, projection, continentData) {
 
   const svg = d3.select("#map").select("svg");
 
-  // Store the color for the selected region
-  selectedRegions[selectedRegion] = color(selectedRegion);
 
-  // Update the map colors based on the selected regions
+  // Update the map colors based on the selected region
   d3.selectAll(".country")
     .style("fill", function(d) {
-      return selectedRegions[d.properties.region] || "#ccc"; // Use the stored color or default to gray
+      return d.properties.region === selectedRegion ? color(selectedRegion) : "#ccc";
     });
 
   // Remove existing continent paths
@@ -246,16 +246,15 @@ function updateRegion(selectedRegion, countryData, projection, continentData) {
     .attr("class", "continent")
     .attr("d", d3.geoPath().projection(projection))
     .style("fill", function(d) {
-      console.log("selectedRegions[d.properties.CONTINENT]", selectedRegions[d.properties.CONTINENT])
-      return selectedRegions[d.properties.CONTINENT] || "#ccc"; // Use the stored color or default to gray
+      return d.properties.CONTINENT === selectedRegion ? color(selectedRegion) : "#ccc";
     })
     .style("stroke", "black") // Add a border
     .style("stroke-width", "0.5px");
 
   // Add markers for countries in the selected regions
   const markers = svg.selectAll(".marker")
-    .data(countryData.filter(d => selectedRegions[d.Region]))
-    .enter()
+  .data(countryData.filter(d => d.Region === selectedRegion))
+  .enter()
     .append("text")
     .attr("class", "marker")
     .attr("x", (d) => projection([d.Longitude, d.Latitude])[0])
@@ -804,7 +803,6 @@ function updateGauge(selectedCountry) {
   // Retrieve the ladder score for the selected country
   getLadderScore(selectedCountry)
       .then(ladderScore => {
-          console.log("ladderScore", ladderScore);
 
           // Determine the target percentage based on the ladder score
           if (ladderScore >= 6 && ladderScore <= 8) {
@@ -853,7 +851,6 @@ const keys = [
 const colorScale = d3
   .scaleOrdinal()
   .domain(keys)
-
   .range([
     "#202020",
     "#202020",
@@ -979,8 +976,7 @@ function updateCircles(selectedAttribute) {
         });
 }
   
-  function updateChart(selectedAttribute) {
-    console.log("Selected Attribute:", selectedAttribute);
+function updateChart(selectedAttribute) {
   
     if (!data) {
       console.log("Data not available yet.");
@@ -1092,6 +1088,117 @@ fetch("/data")
   })
   .catch((error) => console.error(error));
 
+function updateBubbleByYear(selectedYear,data) {
+    console.log("Selected Year:", selectedYear);
+
+    if (!data) {
+        console.log("Data not available yet.");
+        return;
+    }
+
+    // Filter the data based on the selected year
+    const filteredData = data.filter(d => d.Year === parseInt(selectedYear));
+    console.log("updateBubbleByYear",filteredData)
+    // Update the scales with the initial attributes
+    updateScales(initialXAttribute);
+
+    // Update the axes
+    updateAxes();
+
+    // Update the circles with the initial X attribute
+    updateCirclesByYear(initialXAttribute, filteredData);
+}
+
+function updateBubbleByRegion(selectedRegion,data) {
+  console.log("Selected Year:", selectedRegion);
+
+  if (!data) {
+      console.log("Data not available yet.");
+      return;
+  }
+
+  // Filter the data based on the selected year
+  const filteredData = data.filter(d => d.Region === selectedRegion);
+  console.log("updateBubbleByYear",filteredData)
+  // Update the scales with the initial attributes
+  updateScales(initialXAttribute);
+
+  // Update the axes
+  updateAxes();
+
+  // Update the circles with the initial X attribute
+  updateCirclesByYear(initialXAttribute, filteredData);
+}
+function updateBubbleByCountry(selectedCountry,data) {
+  console.log("Selected Year:", selectedCountry);
+
+  if (!data) {
+      console.log("Data not available yet.");
+      return;
+  }
+
+  // Filter the data based on the selected year
+  const filteredData = data.filter(d => d.Country === selectedCountry);
+  console.log("updateBubbleByYear",filteredData)
+  // Update the scales with the initial attributes
+  updateScales(initialXAttribute);
+
+  // Update the axes
+  updateAxes();
+
+  // Update the circles with the initial X attribute
+  updateCirclesByYear(initialXAttribute, filteredData);
+}
+function updateCirclesByYear(selectedAttribute,data) {
+  const circles = bubbleSvg.selectAll("circle").data(data);
+  const tooltip = d3.select("body")
+  .append("div")
+  .attr("class", "tooltip")
+  .style("opacity", 0);
+
+
+  circles.enter()
+      .append("circle")
+      .attr("cx", d => bubbleX(d[selectedAttribute]))
+      .attr("cy", d => bubbleY(d[yAttribute]))
+      .attr("r", 0) // Start with radius 0 for a nice transition
+      .style("fill", d => color(d.Region))
+      .attr("opacity", 0.7)
+  // Merge with the update selection
+  .merge(circles)
+      .transition()
+      .duration(500)
+      .attr("cx", d => bubbleX(d[selectedAttribute]))
+      .attr("cy", d => bubbleY(d[yAttribute]))
+      .attr("r", d => radius(d.Population) * 1.2);  // Update the radius
+
+  // Handle the exit selection
+  circles.exit()
+      .transition()
+      .duration(500)
+      .attr("r", 0)  // Animate radius to 0 upon exit
+      .remove();
+
+  // Add tooltip functionality to both new and updating circles
+  circles
+      .on("mouseover", function(d) {
+          tooltip.transition()
+              .duration(200)
+              .style("opacity", .9);
+          tooltip.html("<strong>Country:</strong> " + d.Country + "<br/>" +
+                       "<strong>Continent:</strong> " + d.Region + "<br/>" +
+                       "<strong>Economy:</strong> " + d.Economy.toFixed(2) + "<br/>" +
+                       "<strong>Ladder Score:</strong> " + d['Ladder score'].toFixed(2))
+              .style("left", (d3.event.pageX + 10) + "px")
+              .style("top", (d3.event.pageY - 28) + "px");
+      })
+      .on("mouseout", function(d) {
+          tooltip.transition()
+              .duration(500)
+              .style("opacity", 0);
+      });
+}
+
 
 let selectedYear = "2024"; // Default year
 let selectedAttribute = "Ladder score"; // Default attribute
@@ -1105,7 +1212,6 @@ document.addEventListener("DOMContentLoaded", function() {
 // Function to update the bar chart
 function updateBarChart() {
   const url = `/bar_chart_data?year=${selectedYear}&attribute=${selectedAttribute}`;
-  console.log(`Fetching data from: ${url}`); // Debugging statement
   fetch(url)
     .then(response => response.json())
     .then(data => {
@@ -1121,7 +1227,6 @@ function updateBarChart() {
 
 // Function to draw the bar chart with given data and attribute
 function drawBarChart(data) {
-  console.log("Data received:", data); // Debugging statement to check the received data
   if (!data || !data.length) {
     console.error("No data available or data is empty");
     return;
@@ -1137,7 +1242,7 @@ function drawBarChart(data) {
     svg.selectAll("*").remove(); // Clear previous drawings
   }
 
-  var margin = { top: 20, right: 20, bottom: 30, left: 80 },
+  var margin = { top: 20, right: 20, bottom: 30, left: 90 },
       width = +svg.attr("width") - margin.left - margin.right,
       height = +svg.attr("height") - margin.top - margin.bottom,
       g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
@@ -1161,7 +1266,6 @@ function drawBarChart(data) {
     .attr("y", d => y(d.Country))
     .attr("width", d => {
       const widthValue = x(+d[selectedAttribute]); // Debugging problematic widths
-      console.log(`Width for ${d.Country}: ${widthValue}`);
       return widthValue;
     })
     .attr("height", y.bandwidth())
