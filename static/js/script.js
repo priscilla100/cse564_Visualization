@@ -219,12 +219,14 @@ d3.json("https://gist.githubusercontent.com/hrbrmstr/91ea5cc9474286c72838/raw/59
   // Call updateRegion to draw continents initially without highlighting
   updateRegion(null, countryData, projection, continentData);
 });
+let selectedRegions = {}; // Object to store selected regions and their colors
 
 function updateRegion(selectedRegion, countryData, projection, continentData) {
   // Clear existing markers
   d3.selectAll(".marker").remove();
+
   const color = d3.scaleOrdinal()
-    .domain(["Africa", "Asia", "Europe", "North America", "South America", "Australia"])
+    .domain(["Africa", "Asia", "Europe", "North America", "South America", "Oceania"])
     .range([
       "#e5c494", 
       "#ffd92f", 
@@ -235,33 +237,35 @@ function updateRegion(selectedRegion, countryData, projection, continentData) {
     ]);
 
   const svg = d3.select("#map").select("svg");
-  // const color = d3.scaleOrdinal().range(d3.schemeCategory10);
 
-  // Update the map based on the selected region
+  // Store the color for the selected region
+  selectedRegions[selectedRegion] = color(selectedRegion);
+
+  // Update the map colors based on the selected regions
   d3.selectAll(".country")
     .style("fill", function(d) {
-      return d.properties.region === selectedRegion ? color(selectedRegion) : "#ccc";
+      return selectedRegions[d.properties.region] || "#ccc"; // Use the stored color or default to gray
     });
 
   // Remove existing continent paths
   svg.selectAll(".continent").remove();
 
-  // Filter the continent features based on the selected continent
-  const selectedContinent = continentData.features.filter(feature => feature.properties.CONTINENT === selectedRegion);
-
-  // Append the selected continent paths to the SVG
+  // Append the continent paths to the SVG
   svg.selectAll(".continent")
-    .data(selectedContinent)
+    .data(continentData.features)
     .enter().append("path")
     .attr("class", "continent")
     .attr("d", d3.geoPath().projection(projection))
-    .style("fill", (d) => color(d.properties.CONTINENT)) // Color the continents
+    .style("fill", function(d) {
+      console.log("selectedRegions[d.properties.CONTINENT]", selectedRegions[d.properties.CONTINENT])
+      return selectedRegions[d.properties.CONTINENT] || "#ccc"; // Use the stored color or default to gray
+    })
     .style("stroke", "black") // Add a border
     .style("stroke-width", "0.5px");
 
-  // Add markers for countries in the selected region
+  // Add markers for countries in the selected regions
   const markers = svg.selectAll(".marker")
-    .data(countryData.filter(d => d.Region === selectedRegion))
+    .data(countryData.filter(d => selectedRegions[d.Region]))
     .enter()
     .append("text")
     .attr("class", "marker")
@@ -283,7 +287,6 @@ function updateRegion(selectedRegion, countryData, projection, continentData) {
       tooltip.transition().duration(500).style("opacity", 0);
     });
 }
-
 
 
 // function updateRegion(selectedRegion,countryData,projection, continentData) {
