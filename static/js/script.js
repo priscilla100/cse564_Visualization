@@ -1161,19 +1161,41 @@ d3.json("/stacked_area_data", function (error, data) {
     .on("mouseleave", noHighlight);
 });
 
-// Load the data
-function updateBarChart(year) {
-  d3.json(`/bar_chart_data?year=${year}`, function(error, data) {
-    if (error) {
-      console.error('Error fetching the bar chart data:', error);
-      return; // Exit if there's an error
-    }
-    drawBarChart(data); // Draw chart with fetched data
-  });
+// Initialize with default values
+let selectedYear = "2024"; // Default year
+let selectedAttribute = "Ladder score"; // Default attribute
+
+// On DOM Content Loaded or similar event setup
+document.addEventListener("DOMContentLoaded", function() {
+  updateBarChart(); // Call to draw the chart initially with default values
+});
+
+
+// Function to update the bar chart
+function updateBarChart() {
+  const url = `/bar_chart_data?year=${selectedYear}&attribute=${selectedAttribute}`;
+  console.log(`Fetching data from: ${url}`); // Debugging statement
+  fetch(url)
+    .then(response => response.json())
+    .then(data => {
+      if(data.length > 0) {
+        drawBarChart(data);
+      } else {
+        console.error('No data returned for this attribute:', selectedAttribute);
+      }
+    })
+    .catch(error => console.error('Failed to fetch bar chart data:', error));
 }
 
 
+// Function to draw the bar chart with given data and attribute
 function drawBarChart(data) {
+  console.log("Data received:", data); // Debugging statement to check the received data
+  if (!data || !data.length) {
+    console.error("No data available or data is empty");
+    return;
+  }
+
   var svg = d3.select("#bar-chart-container").select("svg");
   if (svg.empty()) {
     svg = d3.select("#bar-chart-container")
@@ -1181,49 +1203,38 @@ function drawBarChart(data) {
       .attr("width", 600)
       .attr("height", 400);
   } else {
-    svg.selectAll("*").remove(); // Clear previous
+    svg.selectAll("*").remove(); // Clear previous drawings
   }
 
-  var margin = {top: 20, right: 20, bottom: 30, left: 60}, // Adjusted left margin for labels
+  var margin = { top: 20, right: 20, bottom: 30, left: 60 },
       width = +svg.attr("width") - margin.left - margin.right,
-      height = +svg.attr("height") - margin.top - margin.bottom;
+      height = +svg.attr("height") - margin.top - margin.bottom,
+      g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
 
-  var g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
+  // Filter data to include only top 15 entries sorted by the selected attribute
+  data = data.sort((a, b) => b[selectedAttribute] - a[selectedAttribute]).slice(0, 15);
 
   var x = d3.scaleLinear().range([0, width]);
   var y = d3.scaleBand().rangeRound([0, height]).padding(0.1);
 
-  // Filter and sort the data to get the top 10 countries by ladder score
-  var topCountries = data
-    .sort((a, b) => b['Ladder score'] - a['Ladder score']) // Sort descending by score
-    .slice(0, 15); // Get the top 10
+  // Set domains
+  y.domain(data.map(d => d.Country));
+  x.domain([0, d3.max(data, d => +d[selectedAttribute])]); // Ensure attribute is converted to number
 
-  // Color palette
-  const color = d3.scaleOrdinal()
-    .domain(["Africa", "Asia", "Europe", "North America", "South America", "Australia"])
-    .range([
-      "#e5c494", 
-      "#ffd92f", 
-      "#8da0cc",
-      "#a6d955", 
-      "#e88bc4", 
-      "#fc8d62"
-    ]);
-
-  // Set the domain for the axes
-  y.domain(topCountries.map(d => d.Country));
-  x.domain([0, d3.max(topCountries, d => d['Ladder score'])]);
-
-  // Bind data to bars
+  // Create bars
   g.selectAll(".bar")
-    .data(topCountries)
+    .data(data)
     .enter().append("rect")
     .attr("class", "bar")
     .attr("x", 0)
     .attr("y", d => y(d.Country))
-    .attr("width", d => x(d['Ladder score'])) // Make sure this calculation is correct
+    .attr("width", d => {
+      const widthValue = x(+d[selectedAttribute]); // Debugging problematic widths
+      console.log(`Width for ${d.Country}: ${widthValue}`);
+      return widthValue;
+    })
     .attr("height", y.bandwidth())
-    .attr("fill", d => color(d.Region)); // Set fill based on region
+    .attr("fill", d => color(d.Region));
 
   // Add the X axis
   g.append("g")
@@ -1235,116 +1246,7 @@ function drawBarChart(data) {
     .call(d3.axisLeft(y));
 }
 
-// d3.json("/get_linedata", function(data) {
-//   var margin = {top: 20, right: 20, bottom: 50, left: 20},
-//       width = 520 - margin.left - margin.right,
-//       height = 340 - margin.top - margin.bottom;
 
-//   var svg = d3.select("#multiline-graph")
-//       .append("svg")
-//       .attr("width", width + margin.left + margin.right)
-//       .attr("height", height + margin.top + margin.bottom)
-//       .append("g")
-//       .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-
-//   var x = d3.scaleLinear()
-//       .domain(d3.extent(data, function(d) { return d.Year; }))
-//       .range([0, width]);
-
-//   var y = d3.scaleLinear()
-//       .domain([0, d3.max(data, function(d) { return d["Ladder score"]; })])
-//       .range([height, 0]);
-
-//   // var color = d3.scaleOrdinal(d3.schemeCategory10);
-//   const color = d3.scaleOrdinal()
-//     .domain(["Africa", "Asia", "Europe", "North America", "South America", "Australia"])
-//     .range([
-//       "#e5c494", 
-//       "#ffd92f", 
-//       "#8da0cc",
-//       "#a6d955", 
-//       "#e88bc4", 
-//       "#fc8d62"
-//     ]);
-
-
-//   var line = d3.line()
-//       .x(function(d) { return x(d.Year); })
-//       .y(function(d) { return y(d["Ladder score"]); });
-
-//   var regions = Array.from(new Set(data.map(function(d) { return d.Region; })));
-
-//   color.domain(regions);
-
-  // var lines = svg.selectAll(".line")
-  //     .data(regions)
-  //     .enter().append("g")
-  //     .attr("class", "line");
-
-  //     lines.append("path")
-  //     .attr("class", "line")
-  //     .attr("d", function(region) {
-  //         return line(data.filter(function(d) { return d.Region === region; }));
-  //     })
-  //     .style("stroke", function(region) { return color(region); })
-  //     .style("fill", "none")
-  //     .transition()
-  //     .duration(1000)
-  //     .attrTween("d", function(region) {
-  //         var previous = d3.select(this).attr("d");
-  //         var current = line(data.filter(function(d) { return d.Region === region; }));
-  //         return d3.interpolateString(previous, current);
-  //     });
-  
-
-  // // Add markers (circles) at each data point
-  // lines.selectAll(".point")
-  //     .data(function(region) { return data.filter(function(d) { return d.Region === region; }); })
-  //     .enter().append("circle")
-  //     .attr("cx", function(d) { return x(d.Year); })
-  //     .attr("cy", function(d) { return y(d["Ladder score"]); })
-  //     .attr("r", 4)
-  //     .style("fill", function(d) { return color(d.Region); })
-  //     .style("opacity", 0)
-  //     .transition()
-  //     .duration(1000)
-  //     .style("opacity", 1);
-
-  // // Add tooltips
-  // lines.selectAll(".point")
-  //     .data(function(region) { return data.filter(function(d) { return d.Region === region; }); })
-  //     .append("title")
-  //     .text(function(d) { return d.Region + " (" + d.Year + "): " + d["Ladder score"]; });
-
-  // // Add the X Axis
-  // svg.append("g")
-  //     .attr("transform", "translate(0," + height + ")")
-  //     .call(d3.axisBottom(x));
-
-  // // Add the Y Axis
-  // svg.append("g")
-  //     .call(d3.axisLeft(y));
-
-  // // Add legend
-  // var legend = svg.selectAll(".legend")
-  //     .data(regions)
-  //     .enter().append("g")
-  //     .attr("class", "legend")
-  //     .attr("transform", function(d, i) { return "translate(0," + i * 20 + ")"; });
-
-  // legend.append("rect")
-  //     .attr("x", width - 18)
-  //     .attr("width", 18)
-  //     .attr("height", 18)
-  //     .style("fill", function(region) { return color(region); });
-
-  // legend.append("text")
-  //     .attr("x", width - 24)
-  //     .attr("y", 9)
-  //     .attr("dy", ".35em")
-  //     .style("text-anchor", "end")
-  //     .text(function(d) { return d; });
-// });
 
 d3.json("/get_linedata", function(data) {
   var margin = { top: 20, right: 20, bottom: 50, left: 50 },
