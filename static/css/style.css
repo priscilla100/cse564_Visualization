@@ -151,8 +151,11 @@ svg {
 .chart-gauge {
   position: absolute;
   width: 250px;
-  margin: 10px auto;
-  top: 250px;
+  margin: 5px auto;
+  top:250px;
+  height:200px;
+
+
 }
 .chart-color1 {
   /* fill: #DEA82C */
