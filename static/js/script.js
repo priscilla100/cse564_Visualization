@@ -1161,7 +1161,6 @@ d3.json("/stacked_area_data", function (error, data) {
     .on("mouseleave", noHighlight);
 });
 
-// Initialize with default values
 let selectedYear = "2024"; // Default year
 let selectedAttribute = "Ladder score"; // Default attribute
 
@@ -1246,6 +1245,32 @@ function drawBarChart(data) {
     .call(d3.axisLeft(y));
 }
 
+// Ensure this function gets called initially and on each update
+updateBarChart();
+
+
+// Event listener for year change
+document.getElementById("year").addEventListener("change", function() {
+  selectedYear = this.value;
+  updateBarChart();
+});
+
+// Event listeners for attribute selection from the legend
+document.querySelectorAll('.legend-item').forEach(item => {
+  item.addEventListener('click', function() {
+    // Assuming the attribute name is the text of the legend item, without any symbols.
+    const attributeName = this.innerText.trim().replace(/✔/g, '').trim();
+    
+    // Set the globally selected attribute
+    selectedAttribute = attributeName;
+
+    // Update the bar chart with the newly selected attribute and the current year.
+    updateBarChart();
+  });
+});
+
+// Initial chart update
+updateBarChart();
 
 
 d3.json("/get_linedata", function(data) {
