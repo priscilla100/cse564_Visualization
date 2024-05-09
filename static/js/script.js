@@ -638,7 +638,7 @@ function brush_parallel_chart() {
     "Europe": "#8da0cc",
     "North America": "#a6d955",
     "South America": "#e88bc4",
-    "Australia": "#fc8d62"
+    "Oceania": "#fc8d62"
   };
 
 function updatePolylinewithRegions(selectedRegion, data) {
@@ -893,7 +893,7 @@ const radius = d3.scaleSqrt().range([5, 20]);
 
   // Color palette
   const color = d3.scaleOrdinal()
-  .domain(["Africa", "Asia", "Europe", "North America", "South America", "Australia"])
+  .domain(["Africa", "Asia", "Europe", "North America", "South America", "Oceania"])
 
   .range([
     "#e5c494", 
@@ -1074,21 +1074,21 @@ function updateAxes() {
   xAxisGroup
     .call(xAxis)
     .selectAll("path") // Select the axis line
-    .style("stroke", "#EA6A47"); // Change color of x axis line
+    // .style("stroke", "#EA6A47"); // Change color of x axis line
 
   xAxisGroup
     .selectAll("text") // Select all text elements of x axis
-    .style("fill", "#EA6A47"); // Change color of text labels
+    // .style("fill", "#EA6A47"); // Change color of text labels
 
   // Update y axis
   yAxisGroup
     .call(yAxis)
     .selectAll("path") // Select the axis line
-    .style("stroke", "#EA6A47"); // Change color of y axis line
+    // .style("stroke", "#EA6A47"); // Change color of y axis line
 
   yAxisGroup
     .selectAll("text") // Select all text elements of y axis
-    .style("fill", "#EA6A47"); // Change color of text labels
+    // .style("fill", "#EA6A47"); // Change color of text labels
 }
 
 
@@ -1226,7 +1226,7 @@ d3.json("/get_linedata", function(data) {
       .range([height, 0]);
 
   var color = d3.scaleOrdinal()
-      .domain(["Africa", "Asia", "Europe", "North America", "South America", "Australia"])
+      .domain(["Africa", "Asia", "Europe", "North America", "South America", "Oceania"])
       .range([
           "#e5c494",
           "#ffd92f",
