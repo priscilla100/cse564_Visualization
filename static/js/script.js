@@ -164,6 +164,8 @@ function initializeMap(countryData) {
         // Update the map with the filtered data
         updateCountry(selectedCountry, width, height, data);
         updateMarkers(selectedCountry, selectedYear, width, height, countryData);
+        updatePolylineWithCountry(selectedCountry,data)
+
       })
       .catch(error => {
         console.error('Error:', error);
@@ -590,6 +592,7 @@ d3.json("/pcp_data", function (error, data) {
       .attr("width", 16); 
       
       updatePolylinewithRegions(null,data);
+      updatePolylineWithCountry(null,data);
 
     
 });  // closing
@@ -634,9 +637,6 @@ function brush_parallel_chart() {
         }) ? null : "none";
       }); 
 }    
-
-
-function updatePolylinewithRegions(selectedRegion, data) {
   // Define a color scale for regions
   const regionColors = {
     "Africa": "#e5c494",
@@ -646,6 +646,8 @@ function updatePolylinewithRegions(selectedRegion, data) {
     "South America": "#e88bc4",
     "Australia": "#fc8d62"
   };
+
+function updatePolylinewithRegions(selectedRegion, data) {
 
    // Update the foreground lines based on the selected region
    foreground.style("display", function(d) {
@@ -659,6 +661,21 @@ function updatePolylinewithRegions(selectedRegion, data) {
     return d.Region === selectedRegion ? regionColors[d.Region] : "#ddd";
   });
 }
+
+function updatePolylineWithCountry(selectedCountry, data) {
+  // Update the foreground lines based on the selected country
+  foreground.style("display", function(d) {
+    if (!selectedCountry || selectedCountry === "All") return null;
+    return d.Country === selectedCountry ? null : "none";
+  });
+
+  // Color the countries based on the selected country's region color
+  svg.selectAll(".foreground path").style("stroke", function(d) {
+    if (!selectedCountry || selectedCountry === "All") return "#19747E";
+    return d.Country === selectedCountry ? regionColors[d.Region] : "#ddd";
+  });
+}
+
 // Define a function to update the plot based on the selected region
 function updatePlot(selectedRegion) {
   d3.json(`/update_pcpdata/${selectedRegion}`, function(error, data) {
