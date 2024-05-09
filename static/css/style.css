@@ -159,17 +159,17 @@ svg {
 }
 .chart-color1 {
   /* fill: #DEA82C */
-  fill: #e92213;
+  fill: #fc8d62;
 }
 
 .chart-color2 {
   /* fill: #E9621A} */
-  fill: #dea82c;
+  fill: #ffd92f;
 }
 
 .chart-color3 {
   /* fill: #e92213} */
-  fill: rgba(124, 190, 124, 0.919);
+  fill: #a6d955;
 }
 
 .needle,
