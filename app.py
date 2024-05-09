@@ -124,7 +124,7 @@ def get_stacked_area_data():
 def get_bar_chart_data():
     year = request.args.get('year', default=2024, type=int)
     print("Requested year:", year)  # This will show in your Flask server console
-    filtered_data = df[df['Year'] == year][['Country', 'Region', 'Ladder score']]
+    filtered_data = df[df['Year'] == year][['Country', 'Region', 'Ladder score','Economy','Social support','Health','Freedom','Trust','Generosity']]
     return jsonify(filtered_data.to_dict(orient='records'))
 
 # @app.route('/stacked_area_data')
