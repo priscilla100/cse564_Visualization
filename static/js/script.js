@@ -865,8 +865,6 @@ const colorScale = d3
     "#202020",
   ]);
 
-// .range(['#e41a1c', '#377eb8', '#4daf4a', '#984ea3', '#ff7f00', '#ffff33', '#a65628', '#f781bf']);
-
 
 //Bubble chart code
 const initialXAttribute = "Economy";
@@ -894,7 +892,6 @@ const radius = d3.scaleSqrt().range([5, 20]);
   // Color palette
   const color = d3.scaleOrdinal()
   .domain(["Africa", "Asia", "Europe", "North America", "South America", "Oceania"])
-
   .range([
     "#e5c494", 
     "#ffd92f", 
@@ -913,8 +910,7 @@ const xAxisGroup = bubbleSvg.append("g")
 const yAxisGroup = bubbleSvg.append("g")
   .call(d3.axisLeft(bubbleY));
 
-// Add X Axis Label with a placeholder or initial value
-// Assuming you have defined bubbleSvg and its dimensions already
+
 
 const xAxisLabel = bubbleSvg.append("text")
     .attr("class", "x-axis-label")
@@ -1074,21 +1070,17 @@ function updateAxes() {
   xAxisGroup
     .call(xAxis)
     .selectAll("path") // Select the axis line
-    .style("stroke", "#EA6A47"); // Change color of x axis line
 
   xAxisGroup
     .selectAll("text") // Select all text elements of x axis
-    // .style("fill", "#EA6A47"); // Change color of text labels
 
   // Update y axis
   yAxisGroup
     .call(yAxis)
     .selectAll("path") // Select the axis line
-    // .style("stroke", "#EA6A47"); // Change color of y axis line
 
   yAxisGroup
     .selectAll("text") // Select all text elements of y axis
-    // .style("fill", "#EA6A47"); // Change color of text labels
 }
 
 
@@ -1101,145 +1093,6 @@ fetch("/data")
   .catch((error) => console.error(error));
 
 
-  var stackedMargin = { top: 60, right: 230, bottom: 50, left: 50 },
-  stackedWidth = 460 - stackedMargin.left - stackedMargin.right,
-  stackedHeight = 250 - stackedMargin.top - stackedMargin.bottom;
-
-var stackedSvg = d3
-  .select("#my_dataviz")
-  .append("svg")
-  .attr("width", stackedWidth + stackedMargin.left + stackedMargin.right)
-  .attr("height", stackedHeight + stackedMargin.top + stackedMargin.bottom)
-  .append("g")
-  .attr("transform", "translate(" + stackedMargin.left + "," + stackedMargin.top + ")");
-
-d3.json("/stacked_area_data", function (error, data) {
-  if (error) throw error;
-
-  // List of keys
-  var keys = [
-    "Economy",
-    "Social_support",
-    "Health",
-    "Freedom",
-    "Trust",
-    "Generosity",
-    "Dystopia_Residual",
-  ];
-
-  // Color palette
-  var color = d3.scaleOrdinal().domain(keys).range(d3.schemeSet2);
-  console.log("Data",data.data[0])
-  // var data = data.data
-  // Stack the data
-  // var stackedData = d3.stack().keys(keys).order(d3.stackOrderNone).offset(d3.stackOffsetNone)(data);
-  if (data.data && data.data.length > 0) {
-    var stackedData = d3.stack().keys(keys).order(d3.stackOrderNone).offset(d3.stackOffsetNone)(data.data);
-    console.log("stackedData",stackedData)
-  } else {
-    console.error("Error: Data is empty or undefined.");
-    // Handle the case where there's no data (e.g., display an error message)
-  }
-  // Add X axis
-  var x = d3
-    .scaleLinear()
-    .domain(d3.extent(data.data, function (d) { return d.year; }))
-    .range([0, stackedWidth]);
-  var xAxis = stackedSvg
-    .append("g")
-    .attr("transform", "translate(0," + stackedHeight + ")")
-    .call(d3.axisBottom(x).ticks(5));
-
-  // Add X axis label
-  stackedSvg
-    .append("text")
-    .attr("text-anchor", "end")
-    .attr("x", stackedWidth)
-    .attr("y", stackedHeight + 40)
-    .text("Time (year)");
-
-  // Add Y axis label
-  stackedSvg
-    .append("text")
-    .attr("text-anchor", "end")
-    .attr("x", 0)
-    .attr("y", -20)
-    .text("Stacked Area Chart")
-    .attr("text-anchor", "start");
-
-  // Add Y axis
-  var y = d3.scaleLinear().domain([0, 800]).range([stackedHeight, 0]);
-  stackedSvg.append("g").call(d3.axisLeft(y).ticks(5));
-
-  var area = d3.area()
-  .x(function(d) { return x(d.data.year); }) // Assuming 'year' is the x value
-  .y0(function(d) { return y(d[0]); }) // The starting y-coordinate of the stack
-  .y1(function(d) { return y(d[1]); }); // The ending y-coordinate of the stack
-
-
-  // Show the areas
-  stackedSvg
-  .selectAll(".myArea")
-  .data(stackedData)
-  .enter()
-  .append("path")
-  .attr("class", function (d) {
-      return "myArea " + d.key;
-  })
-  .style("fill", function (d) {
-      return color(d.key);
-  })
-  .attr("d", function(d) { return area(d); }); // Use the area function here
-
-
-  var highlight = function (d) {
-    d3.selectAll(".myArea").style("opacity", 0.1);
-    d3.select("." + d).style("opacity", 1);
-  };
-
-  var noHighlight = function () {
-    d3.selectAll(".myArea").style("opacity", 1);
-  };
-
-  var size = 20;
-
-  stackedSvg
-    .selectAll("myrect")
-    .data(keys)
-    .enter()
-    .append("rect")
-    .attr("x", 400)
-    .attr("y", function (d, i) {
-      return 10 + i * (size + 5);
-    })
-    .attr("width", size)
-    .attr("height", size)
-    .style("fill", function (d) {
-      return color(d);
-    })
-    .on("mouseover", highlight)
-    .on("mouseleave", noHighlight);
-
-  stackedSvg
-    .selectAll("mylabels")
-    .data(keys)
-    .enter()
-    .append("text")
-    .attr("x", 400 + size * 1.2)
-    .attr("y", function (d, i) {
-      return 10 + i * (size + 5) + size / 2;
-    })
-    .style("fill", function (d) {
-      return color(d);
-    })
-    .text(function (d) {
-      return d;
-    })
-    .attr("text-anchor", "left")
-    .style("alignment-baseline", "middle")
-    .on("mouseover", highlight)
-    .on("mouseleave", noHighlight);
-});
 let selectedYear = "2024"; // Default year
 let selectedAttribute = "Ladder score"; // Default attribute
 
@@ -1279,12 +1132,12 @@ function drawBarChart(data) {
     svg = d3.select("#bar-chart-container")
       .append("svg")
       .attr("width", 460)
-      .attr("height", 250);
+      .attr("height", 295);
   } else {
     svg.selectAll("*").remove(); // Clear previous drawings
   }
 
-  var margin = { top: 20, right: 20, bottom: 30, left: 60 },
+  var margin = { top: 20, right: 20, bottom: 30, left: 80 },
       width = +svg.attr("width") - margin.left - margin.right,
       height = +svg.attr("height") - margin.top - margin.bottom,
       g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
@@ -1356,7 +1209,7 @@ updateBarChart();
 d3.json("/get_linedata", function(data) {
   var margin = { top: 20, right: 20, bottom: 50, left: 50 },
       width = 460 - margin.left - margin.right,
-      height = 250 - margin.top - margin.bottom;
+      height = 295 - margin.top - margin.bottom;
 
   var svg = d3.select("#multiline-graph")
       .append("svg")
