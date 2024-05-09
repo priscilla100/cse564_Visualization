@@ -78,7 +78,7 @@ def get_country_region_year():
 
 @app.route('/pcp_data')
 def pcp_data():
-    df= pd.read_csv('static/whr_data/normalized_data.csv')
+    df= pd.read_csv('static/whr_data/pcp_data.csv')
 
     year = request.args.get('year', default=2024, type=int)  # Default to 2024 if no year provided
     filtered_data = df[df['Year'] == year]
@@ -98,7 +98,7 @@ def get_bar_chart_data():
 @app.route('/update_pcpdata/<region>', methods=['GET'])
 def update_data(region):
     formatted_data = {}
-    df= pd.read_csv('static/whr_data/normalized_data.csv')
+    df= pd.read_csv('static/whr_data/pcp_data.csv')
     for entry in df:
         if entry["Region"] == region:
             country = entry["Country"]
