@@ -83,10 +83,10 @@ body {
 }
 
 #legend {
-  width: 70px;
+  width: 90px;
   height:90px;
   position: absolute;
-  top: 190px;
+  top: 100px;
   left: 10px;
   background-color: rgba(215, 246, 234, 0.8);
   padding: 10px;
@@ -151,8 +151,8 @@ svg {
 .chart-gauge {
   position: absolute;
   width: 250px;
-  margin: 5px auto;
-  top:250px;
+  margin-left: 25px auto;
+  top:180px;
   height:200px;
 
 

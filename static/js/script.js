@@ -61,7 +61,7 @@ d3.json(
 
 function initializeMap(countryData) {
   const width = 800;
-  const height = 300;
+  const height = 250;
 
   const svg = d3
     .select("#map")
@@ -440,7 +440,7 @@ function updateMarkers(selectedCountry, selectedYear, width, height, countryData
 
 var pcpMargin = {top: 30, right: 10, bottom: 10, left: 80},
     width = 760 - pcpMargin.left - pcpMargin.right,
-    height = 300 - pcpMargin.top - pcpMargin.bottom;
+    height = 250 - pcpMargin.top - pcpMargin.bottom;
 
 var x = d3.scalePoint().rangeRound([0, width]).padding(1),
     y = {},
@@ -558,13 +558,6 @@ d3.json("/pcp_data", function (error, data) {
               origDimensions = dimensions.slice(0);
         }));
 
-        svg
-        .append("text")
-        .attr("text-anchor", "end")
-        .attr("x", 0)
-        .attr("y", -20)
-        .text("Parallel Coordinate Plot")
-        .attr("text-anchor", "start");
   // Add an axis and title.
    var g = svg.selectAll(".dimension");
   g.append("g")
@@ -872,8 +865,8 @@ const initialXAttribute = "Economy";
 const yAttribute = "Ladder score";
 
 const bubbleMargin = { top: 20, right: 20, bottom: 30, left: 40 };
-const bubbleWidth = 500 - bubbleMargin.left - bubbleMargin.right;
-const bubbleHeight = 300 - bubbleMargin.top - bubbleMargin.bottom;
+const bubbleWidth = 450 - bubbleMargin.left - bubbleMargin.right;
+const bubbleHeight = 250 - bubbleMargin.top - bubbleMargin.bottom;
 
 const bubbleSvg = d3
   .select("#bubble-chart")
@@ -1103,8 +1096,8 @@ fetch("/data")
 
 
   var stackedMargin = { top: 60, right: 230, bottom: 50, left: 50 },
-  stackedWidth = 660 - stackedMargin.left - stackedMargin.right,
-  stackedHeight = 360 - stackedMargin.top - stackedMargin.bottom;
+  stackedWidth = 460 - stackedMargin.left - stackedMargin.right,
+  stackedHeight = 250 - stackedMargin.top - stackedMargin.bottom;
 
 var stackedSvg = d3
   .select("#my_dataviz")
@@ -1280,8 +1273,8 @@ function drawBarChart(data) {
   if (svg.empty()) {
     svg = d3.select("#bar-chart-container")
       .append("svg")
-      .attr("width", 600)
-      .attr("height", 400);
+      .attr("width", 460)
+      .attr("height", 250);
   } else {
     svg.selectAll("*").remove(); // Clear previous drawings
   }
@@ -1356,8 +1349,8 @@ updateBarChart();
 
 d3.json("/get_linedata", function(data) {
   var margin = { top: 20, right: 20, bottom: 50, left: 50 },
-      width = 600 - margin.left - margin.right,
-      height = 400 - margin.top - margin.bottom;
+      width = 460 - margin.left - margin.right,
+      height = 250 - margin.top - margin.bottom;
 
   var svg = d3.select("#multiline-graph")
       .append("svg")
