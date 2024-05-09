@@ -1165,6 +1165,7 @@ function updateCircles(selectedAttribute) {
             tooltip.html("<strong>Country:</strong> " + d.Country + "<br/>" +
                          "<strong>Continent:</strong> " + d.Region + "<br/>" +
                          "<strong>Economy:</strong> " + d.Economy.toFixed(2) + "<br/>" +
+                         "<strong>Population:</strong> " + d.Population.toLocaleString() + "<br/>"+
                          "<strong>Ladder Score:</strong> " + d['Ladder score'].toFixed(2))
                 .style("left", (d3.event.pageX + 10) + "px")
                 .style("top", (d3.event.pageY - 28) + "px");
@@ -1388,6 +1389,7 @@ function updateCirclesByYear(selectedAttribute,data) {
           tooltip.html("<strong>Country:</strong> " + d.Country + "<br/>" +
                        "<strong>Continent:</strong> " + d.Region + "<br/>" +
                        "<strong>Economy:</strong> " + d.Economy.toFixed(2) + "<br/>" +
+                       "<strong>Population:</strong> " + d.Population.toLocaleString() + "<br/>" +
                        "<strong>Ladder Score:</strong> " + d['Ladder score'].toFixed(2))
               .style("left", (d3.event.pageX + 10) + "px")
               .style("top", (d3.event.pageY - 28) + "px");
