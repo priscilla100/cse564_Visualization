@@ -127,6 +127,24 @@ def get_bar_chart_data():
     filtered_data = df[df['Year'] == year][['Country', 'Region', 'Ladder score','Economy','Social support','Health','Freedom','Trust','Generosity']]
     return jsonify(filtered_data.to_dict(orient='records'))
 
+@app.route('/update_pcpdata/<region>', methods=['GET'])
+def update_data(region):
+    formatted_data = {}
+
+    for entry in df:
+        if entry["Region"] == region:
+            country = entry["Country"]
+            if region not in formatted_data:
+                formatted_data[region] = []
+            formatted_data[region].append(country)
+
+    return jsonify(formatted_data)
+
+@app.route('/get_linedata')
+def get_linedata():
+    # Calculate the average Ladder score per Year for each Region
+    avg_scores = df.groupby(['Region', 'Year'])['Ladder score'].mean().reset_index()
+    return jsonify(avg_scores.to_dict(orient='records'))
 # @app.route('/stacked_area_data')
 # def get_stacked_area_data():
 #     # Group data by year and region and sum the relevant columns

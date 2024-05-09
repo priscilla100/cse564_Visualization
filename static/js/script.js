@@ -39,6 +39,7 @@ document.addEventListener("DOMContentLoaded", function () {
 let countryData = [];
 let mapData;
 let selectedContinent;
+let selectedRegion;
 // Load the map data
 d3.json(
   "https://unpkg.com/world-atlas@2.0.2/countries-50m.json",
@@ -165,12 +166,11 @@ document.getElementById("country").addEventListener("change", function () {
       console.error('Error:', error);
     });
 });
-
+var selectedRegion;
 document.getElementById("region").addEventListener("change", function () {
   const selectedRegion = this.value;
   updateRegion(selectedRegion,countryData,projection, continentData);
-  updatePolylinewithRegions(selectedRegion)
-  console.log("updatePolylinewithRegions(selectedRegion)",updatePolylinewithRegions(selectedRegion))
+  updatePolylinewithRegions(selectedRegion,data)
 });
 
 document.getElementById("year").addEventListener("change", function () {
@@ -192,11 +192,9 @@ document.getElementById("year").addEventListener("change", function () {
 
 let continentData; // Declare continentData outside of any function
 let continentPath; // Declare path for the continent path generator
-
-// Define projection
 var projection = d3.geoMercator()
-  .scale(120)
-  .translate([width / 2, height / 1.5]);
+    .scale(120)
+    .translate([width / 2, height / 1.5]);
 
 // Fetch continent data from a GeoJSON file
 d3.json("https://gist.githubusercontent.com/hrbrmstr/91ea5cc9474286c72838/raw/59421ff9b268ff0929b051ddafafbeb94a4c1910/continents.json", function(error, data) {
@@ -449,7 +447,6 @@ d3.json("/pcp_data", function (error, data) {
     .enter().append("path")
       .attr("d", path);
 
-
   // Add a group element for each dimension.
 
   var g = svg.selectAll(".dimension")
@@ -576,32 +573,38 @@ function brush_parallel_chart() {
 
 
 function updatePolylinewithRegions(selectedRegion, data) {
-  console.log("updatePolylinewithRegions selectedRegion", selectedRegion);
+  // Define a color scale for regions
+  const regionColors = {
+    "Africa": "#e5c494",
+    "Asia": "#ffd92f",
+    "Europe": "#8da0cc",
+    "North America": "#a6d955",
+    "South America": "#e88bc4",
+    "Australia": "#fc8d62"
+  };
 
-  const color = d3.scaleOrdinal()
-    .domain(["Africa", "Asia", "Europe", "North America", "South America", "Oceania"])
-    .range([
-      "#e5c494",
-      "#ffd92f",
-      "#8da0cc",
-      "#a6d955",
-      "#e88bc4",
-      "#fc8d62"
-    ]);
+   // Update the foreground lines based on the selected region
+   foreground.style("display", function(d) {
+    if (!selectedRegion || selectedRegion === "All") return null;
+    return d.Region === selectedRegion ? null : "none";
+  });
 
-    foreground.selectAll("path")
-    .style("stroke", function(d) {
-      if (selectedRegion === null) {
-        return "black"; // Default color when no region is selected
-      } else if (d.Region === selectedRegion) {
-        return regionColors[selectedRegion]; // Use the color for the selected region
-      } else {
-        return "#ccc"; // Use a default color for other regions
-      }
-    });
+  // Color the countries based on the selected region
+  svg.selectAll(".foreground path").style("stroke", function(d) {
+    if (!selectedRegion || selectedRegion === "All") return "#19747E";
+    return d.Region === selectedRegion ? regionColors[d.Region] : "#ddd";
+  });
+}
+// Define a function to update the plot based on the selected region
+function updatePlot(selectedRegion) {
+  d3.json(`/update_pcpdata/${selectedRegion}`, function(error, data) {
+    if (error) throw error;
+
+    // Update the plot based on the returned data
+    updatePolylinewithRegions(selectedRegion, data);
+  });
 }
 
-// Function to handle brush events
 // function brush_parallel_chart() {
 //   var actives = [];
 //   svg.selectAll(".brush")
@@ -914,7 +917,6 @@ function updateCircles(selectedAttribute) {
     xAxisLabel.text(selectedAttribute.replace(/_/g, " "));
   }
 
-
 const legendmargin = { left: 20 };
 const legendElement = createLegend(keys, colorScale, legendmargin).node();
 document.getElementById("legend-chart").appendChild(legendElement);
@@ -961,14 +963,6 @@ function createLegend(keys, colorScale, bubbleMargin) {
 
       // Update the chart based on the selected item
       updateChart(selectedData);
-      const attribute = selectedData.replace("✔", "").trim(); // Adjust based on how your data is structured if needed
-
-      // Fetch the current year from your year dropdown or other state management
-      const currentYear = document.getElementById("year").value;
-    
-      // Update the bar chart with the selected attribute and the current year
-      updateBarChart(currentYear, attribute);
-
     });
 
   legendItem
@@ -1118,40 +1112,6 @@ d3.json("/stacked_area_data", function (error, data) {
   .attr("d", function(d) { return area(d); }); // Use the area function here
 
 
-  // Add brushing
-  // var brush = d3
-  //   .brushX()
-  //   .extent([
-  //     [0, 0],
-  //     [stackedWidth, stackedHeight],
-  //   ])
-  //   .on("end", updateChart);
-
-  // stackedSvg
-  //   .append("g")
-  //   .attr("class", "brush")
-  //   .call(brush);
-
-  // var idleTimeout;
-  // function idled() {
-  //   idleTimeout = null;
-  // }
-
-  // function updateChart() {
-  //   var extent = d3.event.selection;
-
-  //   if (!extent) {
-  //     if (!idleTimeout) return (idleTimeout = setTimeout(idled, 350));
-  //     x.domain(d3.extent(data, function (d) { return d.year; }));
-  //   } else {
-  //     x.domain([x.invert(extent[0]), x.invert(extent[1])]);
-  //     stackedSvg.select(".brush").call(brush.move, null);
-  //   }
-
-  //   xAxis.transition().duration(1000).call(d3.axisBottom(x).ticks(5));
-  //   stackedSvg.selectAll(".myArea").transition().duration(1000).attr("d", area);
-  // }
-
   var highlight = function (d) {
     d3.selectAll(".myArea").style("opacity", 0.1);
     d3.select("." + d).style("opacity", 1);
@@ -1202,114 +1162,18 @@ d3.json("/stacked_area_data", function (error, data) {
 });
 
 // Load the data
-// function updateBarChart(year) {
-//   d3.json(`/bar_chart_data?year=${year}`, function(error, data) {
-//     if (error) {
-//       console.error('Error fetching the bar chart data:', error);
-//       return; // Exit if there's an error
-//     }
-//     drawBarChart(data); // Draw chart with fetched data
-//   });
-// }
-
-
-// function drawBarChart(data) {
-//   var svg = d3.select("#bar-chart-container").select("svg");
-//   if (svg.empty()) {
-//     svg = d3.select("#bar-chart-container")
-//       .append("svg")
-//       .attr("width", 600)
-//       .attr("height", 400);
-//   } else {
-//     svg.selectAll("*").remove(); // Clear previous
-//   }
-
-//   var margin = {top: 20, right: 20, bottom: 30, left: 60}, // Adjusted left margin for labels
-//       width = +svg.attr("width") - margin.left - margin.right,
-//       height = +svg.attr("height") - margin.top - margin.bottom;
-
-//   var g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
-
-//   var x = d3.scaleLinear().range([0, width]);
-//   var y = d3.scaleBand().rangeRound([0, height]).padding(0.1);
-
-//   // Filter and sort the data to get the top 10 countries by ladder score
-//   var topCountries = data
-//     .sort((a, b) => b['Ladder score'] - a['Ladder score']) // Sort descending by score
-//     .slice(0, 15); // Get the top 10
-
-//   // Color palette
-//   const color = d3.scaleOrdinal()
-//     .domain(["Africa", "Asia", "Europe", "North America", "South America", "Australia"])
-//     .range([
-//       "#e5c494", 
-//       "#ffd92f", 
-//       "#8da0cc",
-//       "#a6d955", 
-//       "#e88bc4", 
-//       "#fc8d62"
-//     ]);
-
-//   // Set the domain for the axes
-//   y.domain(topCountries.map(d => d.Country));
-//   x.domain([0, d3.max(topCountries, d => d['Ladder score'])]);
-
-//   // Bind data to bars
-//   g.selectAll(".bar")
-//     .data(topCountries)
-//     .enter().append("rect")
-//     .attr("class", "bar")
-//     .attr("x", 0)
-//     .attr("y", d => y(d.Country))
-//     .attr("width", d => x(d['Ladder score'])) // Make sure this calculation is correct
-//     .attr("height", y.bandwidth())
-//     .attr("fill", d => color(d.Region)); // Set fill based on region
-
-//   // Add the X axis
-//   g.append("g")
-//     .attr("transform", `translate(0,${height})`)
-//     .call(d3.axisBottom(x));
-
-//   // Add the Y axis
-//   g.append("g")
-//     .call(d3.axisLeft(y));
-// }
-
-// Initialize with default values
-let selectedYear = "2024"; // Default year
-let selectedAttribute = "Ladder score"; // Default attribute
-
-// On DOM Content Loaded or similar event setup
-document.addEventListener("DOMContentLoaded", function() {
-  updateBarChart(); // Call to draw the chart initially with default values
-});
-
-
-// Function to update the bar chart
-function updateBarChart() {
-  const url = `/bar_chart_data?year=${selectedYear}&attribute=${selectedAttribute}`;
-  console.log(`Fetching data from: ${url}`); // Debugging statement
-  fetch(url)
-    .then(response => response.json())
-    .then(data => {
-      if(data.length > 0) {
-        drawBarChart(data);
-      } else {
-        console.error('No data returned for this attribute:', selectedAttribute);
-      }
-    })
-    .catch(error => console.error('Failed to fetch bar chart data:', error));
+function updateBarChart(year) {
+  d3.json(`/bar_chart_data?year=${year}`, function(error, data) {
+    if (error) {
+      console.error('Error fetching the bar chart data:', error);
+      return; // Exit if there's an error
+    }
+    drawBarChart(data); // Draw chart with fetched data
+  });
 }
 
 
-// Function to draw the bar chart with given data and attribute
 function drawBarChart(data) {
-  console.log("Data received:", data); // Debugging statement to check the received data
-  if (!data || !data.length) {
-    console.error("No data available or data is empty");
-    return;
-  }
-
   var svg = d3.select("#bar-chart-container").select("svg");
   if (svg.empty()) {
     svg = d3.select("#bar-chart-container")
@@ -1317,38 +1181,49 @@ function drawBarChart(data) {
       .attr("width", 600)
       .attr("height", 400);
   } else {
-    svg.selectAll("*").remove(); // Clear previous drawings
+    svg.selectAll("*").remove(); // Clear previous
   }
 
-  var margin = { top: 20, right: 20, bottom: 30, left: 60 },
+  var margin = {top: 20, right: 20, bottom: 30, left: 60}, // Adjusted left margin for labels
       width = +svg.attr("width") - margin.left - margin.right,
-      height = +svg.attr("height") - margin.top - margin.bottom,
-      g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
+      height = +svg.attr("height") - margin.top - margin.bottom;
 
-  // Filter data to include only top 15 entries sorted by the selected attribute
-  data = data.sort((a, b) => b[selectedAttribute] - a[selectedAttribute]).slice(0, 15);
+  var g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
 
   var x = d3.scaleLinear().range([0, width]);
   var y = d3.scaleBand().rangeRound([0, height]).padding(0.1);
 
-  // Set domains
-  y.domain(data.map(d => d.Country));
-  x.domain([0, d3.max(data, d => +d[selectedAttribute])]); // Ensure attribute is converted to number
+  // Filter and sort the data to get the top 10 countries by ladder score
+  var topCountries = data
+    .sort((a, b) => b['Ladder score'] - a['Ladder score']) // Sort descending by score
+    .slice(0, 15); // Get the top 10
 
-  // Create bars
+  // Color palette
+  const color = d3.scaleOrdinal()
+    .domain(["Africa", "Asia", "Europe", "North America", "South America", "Australia"])
+    .range([
+      "#e5c494", 
+      "#ffd92f", 
+      "#8da0cc",
+      "#a6d955", 
+      "#e88bc4", 
+      "#fc8d62"
+    ]);
+
+  // Set the domain for the axes
+  y.domain(topCountries.map(d => d.Country));
+  x.domain([0, d3.max(topCountries, d => d['Ladder score'])]);
+
+  // Bind data to bars
   g.selectAll(".bar")
-    .data(data)
+    .data(topCountries)
     .enter().append("rect")
     .attr("class", "bar")
     .attr("x", 0)
     .attr("y", d => y(d.Country))
-    .attr("width", d => {
-      const widthValue = x(+d[selectedAttribute]); // Debugging problematic widths
-      console.log(`Width for ${d.Country}: ${widthValue}`);
-      return widthValue;
-    })
+    .attr("width", d => x(d['Ladder score'])) // Make sure this calculation is correct
     .attr("height", y.bandwidth())
-    .attr("fill", d => color(d.Region));
+    .attr("fill", d => color(d.Region)); // Set fill based on region
 
   // Add the X axis
   g.append("g")
@@ -1360,30 +1235,101 @@ function drawBarChart(data) {
     .call(d3.axisLeft(y));
 }
 
-// Ensure this function gets called initially and on each update
-updateBarChart();
+d3.json("/get_linedata", function(data) {
+  var margin = {top: 20, right: 20, bottom: 50, left: 20},
+      width = 520 - margin.left - margin.right,
+      height = 340 - margin.top - margin.bottom;
 
+  var svg = d3.select("#multiline-graph")
+      .append("svg")
+      .attr("width", width + margin.left + margin.right)
+      .attr("height", height + margin.top + margin.bottom)
+      .append("g")
+      .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-// Event listener for year change
-document.getElementById("year").addEventListener("change", function() {
-  selectedYear = this.value;
-  updateBarChart();
+  var x = d3.scaleLinear()
+      .domain(d3.extent(data, function(d) { return d.Year; }))
+      .range([0, width]);
+
+  var y = d3.scaleLinear()
+      .domain([0, d3.max(data, function(d) { return d["Ladder score"]; })])
+      .range([height, 0]);
+
+  var color = d3.scaleOrdinal(d3.schemeCategory10);
+
+  var line = d3.line()
+      .x(function(d) { return x(d.Year); })
+      .y(function(d) { return y(d["Ladder score"]); });
+
+  var regions = Array.from(new Set(data.map(function(d) { return d.Region; })));
+
+  color.domain(regions);
+
+  var lines = svg.selectAll(".line")
+      .data(regions)
+      .enter().append("g")
+      .attr("class", "line");
+
+  lines.append("path")
+      .attr("class", "line")
+      .attr("d", function(region) {
+          return line(data.filter(function(d) { return d.Region === region; }));
+      })
+      .style("stroke", function(region) { return color(region); })
+      .style("fill", "none")
+      .transition()
+      .duration(1000)
+      .attrTween("d", function(region) {
+          var previous = d3.select(this).attr("d");
+          var current = line(data.filter(function(d) { return d.Region === region; }));
+          return d3.interpolatePath(previous, current);
+      });
+
+  // Add markers (circles) at each data point
+  lines.selectAll(".point")
+      .data(function(region) { return data.filter(function(d) { return d.Region === region; }); })
+      .enter().append("circle")
+      .attr("cx", function(d) { return x(d.Year); })
+      .attr("cy", function(d) { return y(d["Ladder score"]); })
+      .attr("r", 4)
+      .style("fill", function(d) { return color(d.Region); })
+      .style("opacity", 0)
+      .transition()
+      .duration(1000)
+      .style("opacity", 1);
+
+  // Add tooltips
+  lines.selectAll(".point")
+      .data(function(region) { return data.filter(function(d) { return d.Region === region; }); })
+      .append("title")
+      .text(function(d) { return d.Region + " (" + d.Year + "): " + d["Ladder score"]; });
+
+  // Add the X Axis
+  svg.append("g")
+      .attr("transform", "translate(0," + height + ")")
+      .call(d3.axisBottom(x));
+
+  // Add the Y Axis
+  svg.append("g")
+      .call(d3.axisLeft(y));
+
+  // Add legend
+  var legend = svg.selectAll(".legend")
+      .data(regions)
+      .enter().append("g")
+      .attr("class", "legend")
+      .attr("transform", function(d, i) { return "translate(0," + i * 20 + ")"; });
+
+  legend.append("rect")
+      .attr("x", width - 18)
+      .attr("width", 18)
+      .attr("height", 18)
+      .style("fill", function(region) { return color(region); });
+
+  legend.append("text")
+      .attr("x", width - 24)
+      .attr("y", 9)
+      .attr("dy", ".35em")
+      .style("text-anchor", "end")
+      .text(function(d) { return d; });
 });
-
-// Event listeners for attribute selection from the legend
-document.querySelectorAll('.legend-item').forEach(item => {
-  item.addEventListener('click', function() {
-    // Assuming the attribute name is the text of the legend item, without any symbols.
-    const attributeName = this.innerText.trim().replace(/✔/g, '').trim();
-    
-    // Set the globally selected attribute
-    selectedAttribute = attributeName;
-
-    // Update the bar chart with the newly selected attribute and the current year.
-    updateBarChart();
-  });
-});
-
-// Initial chart update
-updateBarChart();
-
