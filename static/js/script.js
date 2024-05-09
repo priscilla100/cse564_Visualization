@@ -59,37 +59,237 @@ d3.json(
   }
 );
 
-function initializeMap(countryData) {
-  const width = 800;
-  const height = 250;
+// function initializeMap(countryData) {
+//   const width = 800;
+//   const height = 250;
 
-  const svg = d3
-    .select("#map")
+//   const svg = d3
+//     .select("#map")
+//     .append("svg")
+//     .attr("width", width)
+//     .attr("height", height);
+
+//   const projection = d3
+//     .geoMercator()
+//     .scale(98)
+//     .translate([width / 2, height / 1.5]);
+
+//   const path = d3.geoPath().projection(projection);
+
+//   // Set a single color for all countries
+//   const color = d3.scaleOrdinal()
+//     .domain(["Africa", "Asia", "Europe", "North America", "South America", "Oceania"])
+//     .range([
+//       "#e5c494", 
+//       "#ffd92f", 
+//       "#8da0cc",
+//       "#a6d955", 
+//       "#e88bc4", 
+//       "#fc8d62"
+//     ]);
+
+//     const countries = svg
+//     .selectAll(".country")
+//     .data(topojson.feature(mapData, mapData.objects.countries).features)
+//     .enter()
+//     .append("path")
+//     .attr("class", "country")
+//     .attr("d", path)
+//     .style("fill", d => color(d.properties.region));
+    
+// function initializeMap(countryData) {
+//   const width = 700;
+//   const height = 250;
+//   const svg = d3
+//     .select("#map")
+//     .append("svg")
+//     .attr("width", width)
+//     .attr("height", height);
+
+//   const projection = d3
+//     .geoMercator()
+//     .scale(130)
+//     .translate([width / 2, height / 1.5]);
+
+//   const path = d3.geoPath().projection(projection);
+
+//   const color = d3.scaleOrdinal()
+//     .domain(["Africa", "Asia", "Europe", "North America", "South America", "Oceania"])
+//     .range([
+//       "#e5c494", 
+//       "#ffd92f", 
+//       "#8da0cc",
+//       "#a6d955", 
+//       "#e88bc4", 
+//       "#fc8d62"
+//     ]);
+
+//   const countries = svg
+//     .selectAll(".country")
+//     .data(topojson.feature(mapData, mapData.objects.countries).features)
+//     .enter()
+//     .append("path")
+//     .attr("class", "country")
+//     .attr("d", path)
+//     .style("fill", d => {
+//       const countryName = d.properties.name;
+//       const region = countryData.find(country => country.Country === countryName)?.Region;
+//       return color(region);
+//     });
+
+//   // Add emoji markers
+//   const markers = svg
+//     .append("g")
+//     .attr("class", "markers")
+//     .selectAll(".marker")
+//     .data(countryData)
+//     .enter()
+//     .append("text")
+//     .attr("class", "marker")
+//     .attr("x", (d) => projection([d.Longitude, d.Latitude])[0])
+//     .attr("y", (d) => projection([d.Longitude, d.Latitude])[1])
+//     .style("font-size", "20px") // Set initial font size
+//     .text((d) => d.Emoji);
+
+//   // Add tooltips
+//   const tooltip = d3
+//     .select("body")
+//     .append("div")
+//     .attr("class", "tooltip")
+//     .style("opacity", 0);
+
+//   markers
+//     .on("mouseover", function (d) {
+//       tooltip.transition().duration(200).style("opacity", 1);
+//       tooltip
+//         .html(
+//           `
+//                     <strong>${d.Country}</strong><br>
+//                     Happiness Rank: ${d["Happiness Rank"]}<br>
+//                     Ladder Score: ${d["Ladder score"]}<br>
+//                     Population: ${d.Population.toLocaleString()}
+//                 `
+//         )
+//         .style("left", d3.event.pageX + 10 + "px")
+//         .style("top", d3.event.pageY - 28 + "px");
+//     })
+//     .on("mouseout", function () {
+//       tooltip.transition().duration(500).style("opacity", 0);
+//     });
+
+//   // Define zoom behavior
+//   var zoom = d3
+//     .zoom()
+//     .scaleExtent([0.5, 8]) // Set zoom scale limits
+//     .on("zoom", function () {
+//       svg.selectAll("path").attr("transform", d3.event.transform); // Apply transform to the map paths
+//       svg
+//         .selectAll("text")
+//         .attr("x", function (d) {
+//           return d3.event.transform.apply(
+//             projection([d.Longitude, d.Latitude])
+//           )[0];
+//         })
+//         .attr("y", function (d) {
+//           return d3.event.transform.apply(
+//             projection([d.Longitude, d.Latitude])
+//           )[1];
+//         });
+//     });
+
+//   // Apply zoom behavior to SVG element
+//   svg.call(zoom);
+
+//   // Reset zoom transform when no zoom is applied
+//   svg.call(zoom.transform, d3.zoomIdentity);
+
+//   // Event listeners for dropdown menus
+//   document.getElementById("country").addEventListener("change", function () {
+//     selectedCountry = this.value;
+//     fetch(`/data?country=${selectedCountry}`)
+//       .then(response => response.json())
+//       .then(data => {
+//         // Update the map with the filtered data
+//         updateCountry(selectedCountry, width, height, data);
+//         updateMarkers(selectedCountry, selectedYear, width, height, countryData);
+//         updatePolylineWithCountry(selectedCountry,data)
+//         updateGauge(selectedCountry)
+//         updateBubbleByCountry(selectedCountry,data)
+
+//       })
+//       .catch(error => {
+//         console.error('Error:', error);
+//       });
+//   });
+// document.getElementById("region").addEventListener("change", function () {
+//   const selectedRegion = this.value;
+//   updateRegion(selectedRegion,countryData,projection, continentData);
+//   updatePolylinewithRegions(selectedRegion,data)
+//   updateBubbleByRegion(selectedRegion,data)
+// });
+
+// document.getElementById("year").addEventListener("change", function () {
+//   selectedMapYear = this.value;
+//   // Make a request to the Flask endpoint with the selected year
+//   fetch(`/data?year=${selectedMapYear}`)
+//     .then(response => response.json())
+//     .then(data => {
+//       // Update the map with the filtered data
+//       updateYear(selectedMapYear, width, height, data);
+//       updateMarkers(selectedCountry, selectedMapYear, width, height, countryData);
+//       updateBubbleByYear(selectedMapYear, data)
+//     })
+//     .catch(error => {
+//       console.error('Error:', error);
+//     });
+// });
+
+// }
+
+function initializeMap() {
+  const width = 700;
+  const height = 300;
+  const color = d3.scaleOrdinal()
+  .domain(["Africa", "Asia", "Europe", "North America", "South America", "Oceania"])
+  .range([
+    "#e5c494",
+    "#ffd92f",
+    "#8da0cc",
+    "#a6d955",
+    "#e88bc4",
+    "#fc8d62"
+  ]);
+  const svg = d3.select("#map")
     .append("svg")
     .attr("width", width)
     .attr("height", height);
 
-  const projection = d3
-    .geoMercator()
-    .scale(98)
+  const projection = d3.geoMercator()
+    .scale(120)
     .translate([width / 2, height / 1.5]);
 
   const path = d3.geoPath().projection(projection);
 
-  // Set a single color for all countries
-  const color = "#19747E";
+  // Fetch continent data from a GeoJSON file
+  d3.json("https://gist.githubusercontent.com/hrbrmstr/91ea5cc9474286c72838/raw/59421ff9b268ff0929b051ddafafbeb94a4c1910/continents.json", function (error, data) {
+    if (error) throw error;
+    continentData = data; // Assign the fetched data to continentData
 
-  // Draw the map with the single color
-  const countries = svg
-    .selectAll(".country")
-    .data(topojson.feature(mapData, mapData.objects.countries).features)
-    .enter()
-    .append("path")
-    .attr("class", "country")
-    .attr("d", path)
-    .style("fill", color);
+    
+  });
 
-  // Add emoji markers
+  svg.selectAll(".continent")
+  .data(continentData.features)
+  .enter().append("path")
+  .attr("class", "continent")
+  .attr("d", d3.geoPath().projection(projection))
+  .style("fill", function (d) {
+    return color(d.properties.CONTINENT);
+  })
+  .style("stroke", "black") // Add a border
+  .style("stroke-width", "0.5px");
+
+      // Add emoji markers
   const markers = svg
     .append("g")
     .attr("class", "markers")
@@ -196,7 +396,7 @@ document.getElementById("year").addEventListener("change", function () {
     });
 });
 
-}
+  }
 
 let continentData; // Declare continentData outside of any function
 let continentPath; // Declare path for the continent path generator

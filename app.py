@@ -6,7 +6,7 @@ app = Flask(__name__)
 
 # df = pd.read_csv('static/whr_data/imputed_dataset_with_coords.csv')
 
-df = pd.read_csv('static/whr_data/df_merged.csv')
+df = pd.read_csv('static/whr_data/normalized_data.csv')
 df = df.dropna()
 @app.route('/')
 def index():
@@ -78,7 +78,7 @@ def get_country_region_year():
 
 @app.route('/pcp_data')
 def pcp_data():
-    df= pd.read_csv('static/whr_data/pcp_data.csv')
+    df= pd.read_csv('static/whr_data/normalized_data.csv')
 
     year = request.args.get('year', default=2024, type=int)  # Default to 2024 if no year provided
     filtered_data = df[df['Year'] == year]
@@ -87,40 +87,6 @@ def pcp_data():
                'Social support', 'Health', 'Freedom', 'Trust', 'Generosity',
                'Dystopia Residual']].to_dict(orient='records')
     return jsonify(data)
-
-@app.route('/stacked_area_data')
-def get_stacked_area_data():
-    # Group data by year
-    grouped_data = df.groupby('Year')
-    
-    processed_data = []
-    for year, group in grouped_data:
-        # Calculate the cumulative sum of each category
-        
-        group['Economy_cumsum'] = group['Economy'].cumsum()
-        group['Social_support_cumsum'] = group['Social support'].cumsum()
-        group['Health_cumsum'] = group['Health'].cumsum()
-        group['Freedom_cumsum'] = group['Freedom'].cumsum()
-        group['Trust_cumsum'] = group['Trust'].cumsum()
-        group['Generosity_cumsum'] = group['Generosity'].cumsum()
-        group['Dystopia_Residual_cumsum'] = group['Dystopia Residual'].cumsum()
-        
-        # Selecting the last row of each group
-        last_row = group.iloc[-1]
-        
-        # Appending the last row to processed_data
-        processed_data.append({
-            'year': year,
-            'Economy': last_row['Economy_cumsum'],
-            'Social_support': last_row['Social_support_cumsum'],
-            'Health': last_row['Health_cumsum'],
-            'Freedom': last_row['Freedom_cumsum'],
-            'Trust': last_row['Trust_cumsum'],
-            'Generosity': last_row['Generosity_cumsum'],
-            'Dystopia_Residual': last_row['Dystopia_Residual_cumsum']
-        })
-    
-    return jsonify({"data": processed_data})
 
 @app.route('/bar_chart_data', methods=['GET'])
 def get_bar_chart_data():
@@ -132,7 +98,7 @@ def get_bar_chart_data():
 @app.route('/update_pcpdata/<region>', methods=['GET'])
 def update_data(region):
     formatted_data = {}
-    df= pd.read_csv('static/whr_data/pcp_data.csv')
+    df= pd.read_csv('static/whr_data/normalized_data.csv')
     for entry in df:
         if entry["Region"] == region:
             country = entry["Country"]
@@ -167,7 +133,13 @@ def get_ladder_scores():
     ladder_scores = df.set_index('Country')['Ladder score'].to_dict() 
     return jsonify(ladder_scores)
 
+@app.route('/get_country_region_map')
+def get_country_region_map():
+    country_region_map = {}
+    for index, row in df.iterrows():
+        country_region_map[row['Country']] = row['Region']
 
+    return jsonify(country_region_map)
 if __name__ == '__main__':
     app.run(debug=True, port=8970)
 
