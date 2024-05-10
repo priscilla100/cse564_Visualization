@@ -124,7 +124,7 @@ svg {
 
 .foreground path {
   fill: none;
-  stroke: #19747E;
+  /* stroke: #19747E; */
    stroke-opacity: .7;
 }
 

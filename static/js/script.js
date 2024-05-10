@@ -707,15 +707,21 @@ d3.json("/pcp_data", function (error, data) {
     .enter().append("path")
       .attr("d", path);
 
-  // Add blue foreground lines for focus.
-  foreground = svg.append("g")
-      .attr("class", "foreground")
+// Add blue foreground lines for focus.
+foreground = svg.append("g")
+    .attr("class", "foreground")
     .selectAll("path")
-      .data(data)
+    .data(data)
     .enter().append("path")
-      .attr("d", path);
-
-  // Add a group element for each dimension.
+    .attr("d", path)
+    .style("stroke", function(d) {
+        // Get the region of the current data point
+        var region = d.Region;
+        // Return the corresponding color from the regionColors object
+        return regionColors[region] || "#ccc";
+    })
+    .style("stroke-opacity", 0.5)
+    .style("stroke-width", 2);
 
   var g = svg.selectAll(".dimension")
       .data(dimensions)
@@ -1427,9 +1433,6 @@ function updateBarChart() {
     })
     .catch(error => console.error('Failed to fetch bar chart data:', error));
 }
-function updateBarChartByRegion(selectedRegion){
-
-}
 
 // Function to draw the bar chart with given data and attribute
 function drawBarChart(data) {
@@ -1575,7 +1578,7 @@ d3.json("/get_linedata", function(data) {
       ]);
 
   var line = d3.line()
-      .x(function(d) { return x(d.Year); })
+      .x(function(d) { return x(+d.Year);  })
       .y(function(d) { return y(d["Ladder score"]); });
   var regions = Array.from(new Set(data.map(function(d) { return d.Region; })));
   // Store color information for each region
@@ -1610,9 +1613,6 @@ d3.select("#country").on("change", function() {
     }
   });
 });
-
-
-
 
 
   function updateLines(data) {
@@ -1650,7 +1650,7 @@ d3.select("#country").on("change", function() {
       lines.selectAll(".point")
           .data(function(region) { return data.filter(function(d) { return d.Region === region; }); })
           .enter().append("circle")
-          .attr("cx", function(d) { return x(d.Year); })
+          .attr("cx", function(d) { return x(+d.Year);  })
           .attr("cy", function(d) { return y(d["Ladder score"]); })
           .attr("r", 4)
           .style("fill", function(d) { return color(d.Region); })
