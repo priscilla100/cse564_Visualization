@@ -1,9 +1,19 @@
+function resetPage() {
+  location.reload();
+}
 document.addEventListener("DOMContentLoaded", function () {
   d3.json("/countries", function (data) {
     var countryDropdown = d3.select("#country");
 
     data.countries.forEach(function (country) {
       countryDropdown.append("option").text(country);
+    });
+
+    // Listen for changes in the country dropdown
+    countryDropdown.on('change', function() {
+      // Clear the region and year selections
+      // d3.select('#region').property('selectedIndex', 0);
+      // d3.select('#year').property('selectedIndex', 0);
     });
   });
 });
@@ -15,8 +25,16 @@ document.addEventListener("DOMContentLoaded", function () {
     data.regions.forEach(function (region) {
       regionDropdown.append("option").text(region);
     });
+
+    // Listen for changes in the region dropdown
+    regionDropdown.on('change', function() {
+      // Clear the country and year selections
+      // d3.select('#country').property('selectedIndex', 0);
+      // d3.select('#year').property('selectedIndex', 0);
+    });
   });
 });
+
 document.addEventListener("DOMContentLoaded", function () {
   d3.json("/years", function (data) {
     var yearDropdown = d3.select("#year");
@@ -24,8 +42,16 @@ document.addEventListener("DOMContentLoaded", function () {
     data.years.forEach(function (year) {
       yearDropdown.append("option").text(year);
     });
+
+    // Listen for changes in the year dropdown
+    yearDropdown.on('change', function() {
+      // Clear the region and country selections
+      // d3.select('#region').property('selectedIndex', 0);
+      // d3.select('#country').property('selectedIndex', 0);
+    });
   });
 });
+
 document.addEventListener("DOMContentLoaded", function () {
   // Initialize with a default year
   updateBarChart(2024);
@@ -34,7 +60,6 @@ document.addEventListener("DOMContentLoaded", function () {
     updateBarChart(this.value);
   });
 });
-
 
 let countryData = [];
 let mapData;
@@ -368,6 +393,7 @@ function initializeMap() {
         updateGauge(selectedCountry)
         updateBubbleByCountry(selectedCountry,data)
         updateBarChartByCountry(selectedCountry)
+        updateBarChartByCountryAndYear(selectedCountry, selectedYear) 
 
       })
       .catch(error => {
@@ -392,6 +418,7 @@ document.getElementById("year").addEventListener("change", function () {
       updateYear(selectedMapYear, width, height, data);
       updateMarkers(selectedCountry, selectedMapYear, width, height, countryData);
       updateBubbleByYear(selectedMapYear, data)
+      updateBarChartByCountryAndYear(selectedCountry, selectedYear) 
     })
     .catch(error => {
       console.error('Error:', error);
@@ -640,9 +667,9 @@ function updateMarkers(selectedCountry, selectedYear, width, height, countryData
 }
 
 
-var pcpMargin = {top: 30, right: 10, bottom: 10, left: 80},
-    width = 760 - pcpMargin.left - pcpMargin.right,
-    height = 280 - pcpMargin.top - pcpMargin.bottom;
+var pcpMargin = {top: 30, right: 10, bottom: 10, left: 70},
+    width = 800 - pcpMargin.left - pcpMargin.right,
+    height = 320 - pcpMargin.top - pcpMargin.bottom;
 
 var x = d3.scalePoint().rangeRound([0, width]).padding(1),
     y = {},
@@ -672,8 +699,8 @@ var quant_p = function(v){return (parseFloat(v) == v) || (v == "")};
 
 d3.json("/pcp_data", function (error, data) {
   if (error) throw error;
-    // Remove "Region" from the list of dimensions
-    dimensions = d3.keys(data[0]).filter(function(d) { return d !== "Region"; });
+    // Define dimensions excluding "Region" and "Cluster ID"
+    dimensions = d3.keys(data[0]).filter(function(d) { return d !== "Region" && d !== "Cluster ID"; });
     origDimensions = dimensions.slice(0);
 
     x.domain(dimensions);
@@ -698,30 +725,43 @@ d3.json("/pcp_data", function (error, data) {
   })
 
  extents = dimensions.map(function(p) { return [0,0]; });
+  // Define a color scale for regions
+  const regionColors = {
+    "Africa": "#e5c494",
+    "Asia": "#ffd92f",
+    "Europe": "#8da0cc",
+    "North America": "#a6d955",
+    "South America": "#e88bc4",
+    "Oceania": "#fc8d62"
+  };
+
+  // Define a color scale for cluster IDs
+  const clusterColors = d3.scaleOrdinal()
+      .domain(data.map(function(p) { return p["Country"]; }))
+      .range(d3.schemeCategory10); // You can use any color scheme here
 
   // Add grey background lines for context.
   background = svg.append("g")
       .attr("class", "background")
-    .selectAll("path")
+      .selectAll("path")
       .data(data)
-    .enter().append("path")
+      .enter().append("path")
       .attr("d", path);
 
-// Add blue foreground lines for focus.
-foreground = svg.append("g")
-    .attr("class", "foreground")
-    .selectAll("path")
-    .data(data)
-    .enter().append("path")
-    .attr("d", path)
-    .style("stroke", function(d) {
-        // Get the region of the current data point
-        var region = d.Region;
-        // Return the corresponding color from the regionColors object
-        return regionColors[region] || "#ccc";
-    })
-    .style("stroke-opacity", 0.5)
-    .style("stroke-width", 2);
+  // Add blue foreground lines for focus, colored by cluster ID
+  foreground = svg.append("g")
+      .attr("class", "foreground")
+      .selectAll("path")
+      .data(data)
+      .enter().append("path")
+      .attr("d", path)
+      .style("stroke", function(d) {
+          return clusterColors(d["Country"]);
+      })
+      .style("stroke-opacity", 0.5)
+      .style("stroke-width", 2);
+
+
 
   var g = svg.selectAll(".dimension")
       .data(dimensions)
@@ -1481,10 +1521,18 @@ function drawBarChart(data) {
     .attr("fill", d => regionColors[d.Region]); // Use regionColors object for fill
 
   // Add the X axis
-  g.append("g")
+  const xAxis =g.append("g")
     .attr("transform", `translate(0,${height})`)
     .call(d3.axisBottom(x));
-
+  // Add the X axis label
+  xAxis.append("text")
+  .attr("class", "axis-label")
+  .attr("x", width / 2)
+  .attr("y", 25)  // Position below the axis line
+  .attr("fill", "#000")  // Text color
+  .style("text-anchor", "middle")
+  .text("Metric Score");  // Label for the x-axis
+    
   // Add the Y axis
   g.append("g")
     .call(d3.axisLeft(y));
@@ -1546,6 +1594,74 @@ function updateBarChartByCountry(selectedCountry){
     .catch(error => console.error('Failed to fetch bar chart data by country:', error));
 }
 
+function updateBarChartByCountryAndYear(selectedCountry, selectedYear) {
+  const url = `/update_bar_chart_by_country_and_year?country=${selectedCountry}&year=${selectedYear}&attribute=${selectedAttribute}`;
+  fetch(url)
+    .then(response => response.json())
+    .then(data => {
+      if(data.length > 0) {
+        if (!data || !data.length) {
+          console.error("No data available or data is empty");
+          return;
+        }
+      
+        var svg = d3.select("#bar-chart-container").select("svg");
+        if (svg.empty()) {
+          svg = d3.select("#bar-chart-container")
+            .append("svg")
+            .attr("width", 460)
+            .attr("height", 295);
+        } else {
+          svg.selectAll("*").remove(); // Clear previous drawings
+        }
+      
+        var margin = { top: 20, right: 20, bottom: 30, left: 90 },
+            width = +svg.attr("width") - margin.left - margin.right,
+            height = +svg.attr("height") - margin.top - margin.bottom,
+            g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
+      
+        var x = d3.scaleLinear().range([0, width]);
+        var y = d3.scaleBand().rangeRound([0, height]).padding(0.1);
+      
+        // Set domains
+        y.domain(data.map(d => d.Country));
+        x.domain([0, d3.max(data, d => +d[selectedAttribute])]); // Ensure attribute is converted to number
+      
+        // Create bars
+        g.selectAll(".bar")
+          .data(data)
+          .enter().append("rect")
+          .attr("class", "bar")
+          .attr("x", 0)
+          .attr("y", d => y(d.Country))
+          .attr("width", d => x(+d[selectedAttribute])) // Use the selected attribute directly
+          .attr("height", y.bandwidth())
+          .attr("fill", d => regionColors[d.Region]); // Use regionColors object for fill
+      
+        // Add the X axis
+        const xAxis =g.append("g")
+          .attr("transform", `translate(0,${height})`)
+          .call(d3.axisBottom(x));
+        // Add the X axis label
+        xAxis.append("text")
+        .attr("class", "axis-label")
+        .attr("x", width / 2)
+        .attr("y", 25)  // Position below the axis line
+        .attr("fill", "#000")  // Text color
+        .style("text-anchor", "middle")
+        .text("Metric Score");  // Label for the x-axis
+          
+        // Add the Y axis
+        g.append("g")
+          .call(d3.axisLeft(y));
+      } else {
+        console.error('No data returned for this country and year:', selectedCountry, selectedYear);
+      }
+    })
+    .catch(error => console.error('Failed to fetch bar chart data by country and year:', error));
+}
+
+
 d3.json("/get_linedata", function(data) {
   var margin = { top: 20, right: 20, bottom: 50, left: 50 },
       width = 460 - margin.left - margin.right,
@@ -1576,7 +1692,29 @@ d3.json("/get_linedata", function(data) {
           "#e88bc4",
           "#fc8d62"
       ]);
+// Append X-axis to the SVG and add a label for it
+svg.append("g")
+    .attr("transform", "translate(0," + height + ")")
+    .call(d3.axisBottom(x).tickFormat(d3.format("d")))
+    .append("text") // Adding a label to the X-axis
+    .attr("fill", "#000") // Text color
+    .attr("x", width / 2) // Position the label in the middle of the axis
+    .attr("y", margin.bottom -25) // Adjust based on the margin, closer to the bottom
+    .attr("dy", "1em") // Offset upwards slightly
+    .attr("text-anchor", "middle") // Center the text
+    .text("Year");
 
+// Append Y-axis to the SVG and add a label for it
+svg.append("g")
+    .call(d3.axisLeft(y))
+    .append("text") // Adding a label to the Y-axis
+    .attr("fill", "#000") // Text color
+    .attr("transform", "rotate(-90)") // Rotate text for vertical axis
+    .attr("y", 10 - margin.left) // Position left of the axis
+    .attr("x", 0 - (height / 2)) // Position centered vertically
+    .attr("dy", "1em") // Offset to align correctly
+    .attr("text-anchor", "middle") // Center the text
+    .text("Ladder Score");
   var line = d3.line()
       .x(function(d) { return x(+d.Year);  })
       .y(function(d) { return y(d["Ladder score"]); });
@@ -1669,7 +1807,7 @@ d3.select("#country").on("change", function() {
   // Add the X Axis
   svg.append("g")
       .attr("transform", "translate(0," + height + ")")
-      .call(d3.axisBottom(x));
+      .call(d3.axisBottom(x).tickFormat(d3.format("d")));
 
   // Add the Y Axis
   svg.append("g")

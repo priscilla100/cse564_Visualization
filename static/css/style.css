@@ -83,15 +83,15 @@ body {
 }
 
 #legend {
-  width: 110px;
-  height:110px;
+  /* width: 110px;
+  height:110px; */
   position: absolute;
   top: 90px;
   left: 10px;
   background-color: rgba(215, 246, 234, 0.8);
   padding: 10px;
   border-radius: 5px;
-  font-size: 12px;
+  font-size: 8px;
 }
 
 #legend ul {
@@ -124,7 +124,7 @@ svg {
 
 .foreground path {
   fill: none;
-  /* stroke: #19747E; */
+  stroke: rgba(209, 232, 226, 0.7);;
    stroke-opacity: .7;
 }
 
@@ -138,7 +138,7 @@ svg {
 .axis line,
 .axis path {
   fill: none;
-  stroke: #000;
+  /* stroke: #000; */
   shape-rendering: crispEdges;
 }
 
@@ -205,7 +205,7 @@ svg {
 
 
 #legend-color{
-  font-size: 10px;
+  font-size: 8px;
   color: black;
 
 }

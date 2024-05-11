@@ -25,7 +25,7 @@ def get_countries():
 
 @app.route('/regions')
 def get_regions():
-    regions = ['Select Region'] + sorted(df['Region'].unique())
+    regions = ['Select Continent'] + sorted(df['Region'].unique())
     return {'regions': list(regions)}
 
 @app.route('/countries_by_region')
@@ -76,12 +76,26 @@ def get_country_region_year():
     
     return jsonify(filtered_data.to_dict(orient='records'))
 
+grouped = df.groupby(['Year', 'Region'])
+# Function to sample the most uncertain record from each group
+def sample_records(group):
+    if group['Region'].iloc[0] == 'Oceania':
+        # If the region is Oceania, return all records
+        return group
+    else:
+        # Sample 10 records from the group
+        return group.sample(n=8, replace=True) if len(group) > 8 else group
 @app.route('/pcp_data')
 def pcp_data():
     df= pd.read_csv('static/whr_data/pcp_data.csv')
 
+    # Apply the function to each group
+    sampled_records = grouped.apply(sample_records)
+
+    # Reset the index of the resulting dataframe
+    sampled_records.reset_index(drop=True, inplace=True)
     year = request.args.get('year', default=2024, type=int)  # Default to 2024 if no year provided
-    filtered_data = df[df['Year'] == year]
+    filtered_data = sampled_records[sampled_records['Year'] == year]
     # Assuming df is a global variable or defined elsewhere
     data = filtered_data[['Country', 'Region', 'Happiness Rank', 'Ladder score', 'Economy',
                'Social support', 'Health', 'Freedom', 'Trust', 'Generosity',
@@ -151,6 +165,25 @@ def get_country_region_map():
         country_region_map[row['Country']] = row['Region']
 
     return jsonify(country_region_map)
+
+@app.route('/update_bar_chart_by_country_and_year')
+def update_bar_chart_by_country_and_year():
+    # Get the country and year from the query parameters
+    country = request.args.get('country')
+    year = request.args.get('year')
+    
+    # Filter the DataFrame based on the selected country and year
+    filtered_df = df[(df['Country'] == country) & (df['Year'] == int(year))]
+    
+    # Check if any data is found
+    if not filtered_df.empty:
+        # Convert the filtered DataFrame to a dictionary
+        data_dict = filtered_df.to_dict(orient='records')[0]
+        return jsonify(data_dict)
+    else:
+        # Return an empty dictionary if no data is found
+        return jsonify({})
+    
 if __name__ == '__main__':
     app.run(debug=True, port=8970)
 
