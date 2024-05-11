@@ -23,6 +23,8 @@ A web application for visualizing and exploring the World Happiness Report data 
 Check out the [demo video on YouTube](https://youtu.be/fR5rm0slXIo) to see the dashboard in action.
 
 [![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/fR5rm0slXIo/0.jpg)](https://www.youtube.com/watch?v=fR5rm0slXIo)
+[![World Happiness Dashboard](dashboard.png)](https://www.youtube.com/watch?v=fR5rm0slXIo) 
+
 
 ## Getting Started
 1. Clone the repository.
